@@ -186,7 +186,7 @@ class EngineBase(abc.ABC):
             self.iteration = it if it > 0 else 0
         except AttributeError as e:
             # if stub does not have iteration
-            warnings.warn(f"{e}. iteration reset to zero.")
+            warnings.warn(f"{e} Iteration reset to zero.")
             self.iteration = 0
 
         for batch in dataloader:
