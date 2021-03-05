@@ -21,6 +21,9 @@ class StubBase(abc.ABC):
             copies.append(self.__class__(**kwargs))
         return copies
 
+    def __call__(self, copy: int = 1):
+        return self.replicate(copy)
+
     def __repr__(self):
         out = []
         out.append(self.__class__.__name__)
@@ -32,8 +35,8 @@ class StubBase(abc.ABC):
         return '\n'.join(out)
 
 
-class StubTrain(StubBase):
-    """Train Stub"""
+class Train(StubBase):
+    """Train stub"""
     def __init__(self, dataloader: str, **kwargs):
 
         assert isinstance(dataloader, str), \
@@ -42,12 +45,13 @@ class StubTrain(StubBase):
         kwargs['dataloader'] = dataloader
         kwargs['action'] = 'train'
         kwargs['epoch'] = 1
+        # additional options can be `optimizer`, `scheduler`
 
         super().__init__(**kwargs)
 
 
-class StubEval(StubBase):
-    """Evaluation Stub"""
+class Evaluate(StubBase):
+    """Evaluation stub"""
     def __init__(self, dataloader: str, **kwargs):
 
         assert isinstance(dataloader, str), \
@@ -55,5 +59,22 @@ class StubEval(StubBase):
         kwargs['dataloader'] = dataloader
         kwargs['action'] = 'evaluate'
         kwargs['epoch'] = 1
+        # additional options can be metrics and eval specs
+
+        super().__init__(**kwargs)
+
+
+class Lambda(StubBase):
+    """General action stub"""
+    def __init__(self, action: str, **kwargs):
+
+        assert isinstance(action, str), \
+        f"Action should be string type but get type {type(action)}."
+
+        assert action != 'train', \
+        f"Please use Train stub for training action."
+
+        kwargs['action'] = action
+        # e.g. save checkpoint, send emails, etc.
 
         super().__init__(**kwargs)
