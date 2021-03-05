@@ -5,10 +5,10 @@ with open("README.md", 'r') as f:
     long_description = f.read()
 
 setup(name="torchliter",
-      version="0.0.0",
+      version="0.0.1",
       author="Chenchao Zhao",
       author_email="chenchao.zhao@gmail.com",
-      description="A light weight training tool for pytorch projects.",
+      description="A lightweight training tool for pytorch projects.",
       packages=find_packages(exclude=["tests"]),
       long_description=long_description,
       long_description_content_type="text/markdown",

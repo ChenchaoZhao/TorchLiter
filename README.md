@@ -1,3 +1,3 @@
 # TorchLiter
 
-A light weight training tool for pytorch projects
+A truly lightweight training tool for pytorch projects
