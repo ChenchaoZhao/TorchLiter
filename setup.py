@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 with open("README.md", 'r') as f:
     long_description = f.read()
 
-setup(name="torch-liter",
+setup(name="torchliter",
       version="0.0.0",
       author="Chenchao Zhao",
       author_email="chenchao.zhao@gmail.com",
