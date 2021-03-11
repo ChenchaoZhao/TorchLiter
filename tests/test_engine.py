@@ -1,5 +1,6 @@
-import liter
 import torch
+
+import liter
 
 
 class SimpleEngine(liter.engine.EngineBase):
