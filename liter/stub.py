@@ -37,14 +37,17 @@ class StubBase(abc.ABC):
 
 class Train(StubBase):
     """Train stub"""
-    def __init__(self, dataloader: str, **kwargs):
+    def __init__(self, dataloader: str, iteration: int = 0, **kwargs):
 
         assert isinstance(dataloader, str), \
         f"Dataloader should be string type but get type {type(dataloader)}"
 
+        iteration = max(int(iteration), 0)
+
         kwargs['dataloader'] = dataloader
         kwargs['action'] = 'train'
         kwargs['epoch'] = 1
+        kwargs['iteration'] = iteration
         # additional options can be `optimizer`, `scheduler`
 
         super().__init__(**kwargs)
