@@ -1,9 +1,27 @@
 import abc
 import collections
+from functools import wraps
 
 import numpy as np
 
 from .common import REPR_INDENT
+
+
+def to_buffer(buffer_name):
+    # buffer_name should be an attribute of the owner class
+
+    def decorator(func):
+        # func: class method that yields tuple of (key: str, val)
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            buffer_dict = getattr(self, buffer_name)
+            for key, val in func(self, *args, **kwargs):
+                if key in buffer_dict:
+                    buffer_dict[key](val)
+
+        return wrapper
+
+    return decorator
 
 
 class BufferBase(abc.ABC):
