@@ -17,10 +17,10 @@ DATALOADER = torch.utils.data.DataLoader
 class EngineBase(abc.ABC):
 
     _registry = (
-        'model_registry',
-        'optimizer_registry',
-        'scheduler_registry',
-        'dataloader_registry',
+        "model_registry",
+        "optimizer_registry",
+        "scheduler_registry",
+        "dataloader_registry",
     )
 
     def __init__(self):
@@ -67,8 +67,9 @@ class EngineBase(abc.ABC):
                 self.dataloader_registry[name] = value
             else:
                 for r in self._registry:
-                    assert name not in getattr(self, r), \
-                    f"{name} has been registered in {r}"
+                    assert name not in getattr(
+                        self, r
+                    ), f"{name} has been registered in {r}"
 
             super().__setattr__(name, value)
 
@@ -91,44 +92,38 @@ class EngineBase(abc.ABC):
 
         out = {}
 
-        out['engine'] = {'epoch': self.epoch, 'iteration': self.iteration}
-        out['model'] = {
-            k: v.state_dict()
-            for k, v in self.model_registry.items()
+        out["engine"] = {"epoch": self.epoch, "iteration": self.iteration}
+        out["model"] = {k: v.state_dict() for k, v in self.model_registry.items()}
+        out["optimizer"] = {
+            k: v.state_dict() for k, v in self.optimizer_registry.items()
         }
-        out['optimizer'] = {
-            k: v.state_dict()
-            for k, v in self.optimizer_registry.items()
-        }
-        out['scheduler'] = {
-            k: v.state_dict()
-            for k, v in self.scheduler_registry.items()
+        out["scheduler"] = {
+            k: v.state_dict() for k, v in self.scheduler_registry.items()
         }
 
         return out
 
     def load_state_dict(self, state_dict):
 
-        if 'engine' in state_dict:
-            epoch = int(state_dict['engine']['epoch'])
-            iteration = int(state_dict['engine']['iteration'])
+        if "engine" in state_dict:
+            epoch = int(state_dict["engine"]["epoch"])
+            iteration = int(state_dict["engine"]["iteration"])
             if epoch < 0 or iteration < 0:
                 self.reset_engine()
-                warnings.warn(
-                    "Invalid values encountered in engine state_dict.")
+                warnings.warn("Invalid values encountered in engine state_dict.")
             else:
                 self.epoch = epoch
                 self.iteration = iteration
         else:
             self.reset_engine()
 
-        for k, v in state_dict['model'].items():
+        for k, v in state_dict["model"].items():
             self.model_registry[k].load_state_dict(v)
 
-        for k, v in state_dict['optimizer'].items():
+        for k, v in state_dict["optimizer"].items():
             self.optimizer_registry[k].load_state_dict(v)
 
-        for k, v in state_dict['scheduler'].items():
+        for k, v in state_dict["scheduler"].items():
             self.scheduler_registry[k].load_state_dict(v)
 
     def train(self):
@@ -164,7 +159,7 @@ class EngineBase(abc.ABC):
     def execute(self, **kwargs):
         while len(self.stubs_in_queue) > 0:
             self.current_stub = self.stubs_in_queue.popleft()
-            if self.current_stub.action == 'train':
+            if self.current_stub.action == "train":
                 self.per_epoch(**kwargs)
             else:
                 try:
@@ -216,27 +211,27 @@ class EngineBase(abc.ABC):
     def __repr__(self):
         out = []
         out.append(self.__class__.__name__)
-        out.append(' ' * REPR_INDENT + f"epoch: {self.epoch}")
-        out.append(' ' * REPR_INDENT + f"iteration: {self.iteration}")
+        out.append(" " * REPR_INDENT + f"epoch: {self.epoch}")
+        out.append(" " * REPR_INDENT + f"iteration: {self.iteration}")
 
         # model
-        out.append(' ' * REPR_INDENT + f"model: ")
+        out.append(" " * REPR_INDENT + f"model: ")
         for k in self.model_registry:
-            out.append(' ' * 2 * REPR_INDENT + f"{k}")
+            out.append(" " * 2 * REPR_INDENT + f"{k}")
 
         # optimizer
-        out.append(' ' * REPR_INDENT + f"optimizer: ")
+        out.append(" " * REPR_INDENT + f"optimizer: ")
         for k in self.optimizer_registry:
-            out.append(' ' * 2 * REPR_INDENT + f"{k}")
+            out.append(" " * 2 * REPR_INDENT + f"{k}")
 
         # scheduler
-        out.append(' ' * REPR_INDENT + f"scheduler: ")
+        out.append(" " * REPR_INDENT + f"scheduler: ")
         for k in self.scheduler_registry:
-            out.append(' ' * 2 * REPR_INDENT + f"{k}")
+            out.append(" " * 2 * REPR_INDENT + f"{k}")
 
         # dataloader
-        out.append(' ' * REPR_INDENT + f"dataloader: ")
+        out.append(" " * REPR_INDENT + f"dataloader: ")
         for k in self.dataloader_registry:
-            out.append(' ' * 2 * REPR_INDENT + f"{k}")
+            out.append(" " * 2 * REPR_INDENT + f"{k}")
 
-        return '\n'.join(out)
+        return "\n".join(out)

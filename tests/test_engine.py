@@ -8,8 +8,9 @@ class SimpleEngine(liter.engine.EngineBase):
         super().__init__()
 
         self.model = torch.nn.Linear(1, 3)
-        self.dataloader = torch.utils.data.DataLoader(torch.randn(1000, 1),
-                                                      batch_size=10)
+        self.dataloader = torch.utils.data.DataLoader(
+            torch.randn(1000, 1), batch_size=10
+        )
         self.optimizer = torch.optim.Adam(self.model.parameters())
         self.total_iteration = 0
 
@@ -36,7 +37,7 @@ def test_engine():
 
     trainer = SimpleEngine()
 
-    trainer(liter.stub.Train('dataloader')(2))
+    trainer(liter.stub.Train("dataloader")(2))
 
     assert trainer.epoch == 2
     assert trainer.iteration == 1000 // 10

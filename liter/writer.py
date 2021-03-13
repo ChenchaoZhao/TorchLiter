@@ -3,14 +3,14 @@ import os
 
 
 class Writer:
-    """CSV writer
-    """
-    def __init__(self, path, columns, delimiter=','):
+    """CSV writer"""
+
+    def __init__(self, path, columns, delimiter=","):
         self.path = path
         self.path_exists = os.path.exists(path)
         self.delimiter = delimiter
         if self.path_exists:
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 header = next(csv.reader(f, delimiter=self.delimiter))
             if set(header) == set(columns):
                 self.columns = header
@@ -28,11 +28,11 @@ class Writer:
 
     def __enter__(self):
 
-        mode = 'a+' if self.path_exists else 'w'
+        mode = "a+" if self.path_exists else "w"
         self.file = open(self.path, mode, buffering=1)
-        self.writer = csv.DictWriter(f=self.file,
-                                     fieldnames=self.columns,
-                                     delimiter=self.delimiter)
+        self.writer = csv.DictWriter(
+            f=self.file, fieldnames=self.columns, delimiter=self.delimiter
+        )
         if self.write_header:
             self.writer.writeheader()
 
@@ -50,5 +50,5 @@ class Writer:
     def __repr__(self):
         out = []
         out.append(self.__class__.__name__)
-        out.append(' ' * REPR_INDENT + f"filepath: {self.path}")
-        out.append(' ' * REPR_INDENT + f"columns: {self.columns}")
+        out.append(" " * REPR_INDENT + f"filepath: {self.path}")
+        out.append(" " * REPR_INDENT + f"columns: {self.columns}")

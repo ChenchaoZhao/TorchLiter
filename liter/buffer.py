@@ -26,9 +26,9 @@ def to_buffer(buffer_name):
 
 class BufferBase(abc.ABC):
     """Buffer base class"""
+
     def __init__(self, *args, **kwargs):
-        assert len(args) == 0, \
-        "There should not be any args only kwargs allowed."
+        assert len(args) == 0, "There should not be any args only kwargs allowed."
         for k, v in kwargs.items():
             setattr(self, k, v)
         self.reset()
@@ -48,19 +48,19 @@ class BufferBase(abc.ABC):
         out = []
         out.append(self.__class__.__name__)
         for k, v in self.__dict__.items():
-            if k.startswith('_'):
+            if k.startswith("_"):
                 continue
-            out.append(' ' * REPR_INDENT + f"{k}: {v}")
-        return '\n'.join(out)
+            out.append(" " * REPR_INDENT + f"{k}: {v}")
+        return "\n".join(out)
 
 
 class ScalarSmoother(BufferBase):
     """Rolling smoothing buffer for scalars"""
+
     def __init__(self, window_size: int, **kwargs):
 
         window_size = int(window_size)
-        assert window_size > 0, \
-        f"window_size should be > 0 but get {window_size}"
+        assert window_size > 0, f"window_size should be > 0 but get {window_size}"
 
         super().__init__(window_size=window_size, **kwargs)
 
