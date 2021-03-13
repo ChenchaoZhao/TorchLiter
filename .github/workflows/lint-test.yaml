@@ -14,5 +14,8 @@ jobs:
       - uses: psf/black@stable
         with:
           args: ". --check"
+      - name: install dependencies
+        run: python3 -m pip install pytest
+      - run: python3 -m pip install torch torchvision
       - name: test
         run: python3 -m pytest tests/
