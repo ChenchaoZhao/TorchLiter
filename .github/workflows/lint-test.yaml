@@ -8,14 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - uses: psf/black@stable
-        with:
-          args: ". --check"
-  test:
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
         with:
           python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
-      - run: python3 -m pytest tests/
+      - uses: psf/black@stable
+        with:
+          args: ". --check"
+      - name: test
+        run: python3 -m pytest tests/
