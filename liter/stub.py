@@ -1,7 +1,5 @@
 import abc
 
-from .common import REPR_INDENT
-
 
 class StubBase(abc.ABC):
     """Base class for Stubs"""

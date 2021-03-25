@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from .common import REPR_INDENT
 
 MODEL = nn.Module
 OPTIMIZER = optim.Optimizer

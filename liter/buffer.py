@@ -4,8 +4,6 @@ from functools import wraps
 
 import numpy as np
 
-from .common import REPR_INDENT
-
 
 def to_buffer(buffer_name):
     # buffer_name should be an attribute of the owner class
