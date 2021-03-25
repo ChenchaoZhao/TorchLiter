@@ -1,6 +1,8 @@
 import csv
 import os
 
+__all__ = ["Writer"]
+
 
 class Writer:
     """CSV writer"""

@@ -42,3 +42,5 @@ def test_engine():
     assert trainer.epoch == 2
     assert trainer.iteration == 1000 // 10
     assert trainer.total_iteration == 2000 // 10
+
+    print(trainer)
