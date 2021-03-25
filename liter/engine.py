@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from . import REPR_INDENT
+
 __all__ = ["EngineBase"]
 
 
