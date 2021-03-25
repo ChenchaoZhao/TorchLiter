@@ -10,3 +10,5 @@ def test_train_stub():
     assert "iteration" in train.__dict__
 
     assert train.iteration == 0
+
+    print(train)

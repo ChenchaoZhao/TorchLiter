@@ -4,6 +4,8 @@ from functools import wraps
 
 import numpy as np
 
+__all__ = ["to_buffer", "BufferBase", "ScalarSmoother"]
+
 
 def to_buffer(buffer_name):
     # buffer_name should be an attribute of the owner class
