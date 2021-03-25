@@ -1,7 +1,6 @@
 import csv
 import os
 
-
 __all__ = ["Writer"]
 
 

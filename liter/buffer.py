@@ -1,8 +1,10 @@
 import abc
 import collections
 from functools import wraps
-from . import REPR_INDENT
+
 import numpy as np
+
+from . import REPR_INDENT
 
 __all__ = ["to_buffer", "BufferBase", "ScalarSmoother"]
 

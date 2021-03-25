@@ -1,4 +1,5 @@
 import abc
+
 from . import REPR_INDENT
 
 __all__ = ["StubBase", "Train", "Evaluate", "Lambda"]

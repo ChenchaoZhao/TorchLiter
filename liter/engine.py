@@ -10,7 +10,6 @@ from . import REPR_INDENT
 
 __all__ = ["EngineBase"]
 
-
 MODEL = nn.Module
 OPTIMIZER = optim.Optimizer
 SCHEDULER = optim.lr_scheduler._LRScheduler
