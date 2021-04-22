@@ -24,7 +24,10 @@ class StubBase(abc.ABC):
         return copies
 
     def __call__(self, copy: int = 1):
-        return self.replicate(copy)
+        if copy > 0:
+            return self.replicate(copy)
+        else:
+            return None
 
     def __repr__(self):
         out = []
