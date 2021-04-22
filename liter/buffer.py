@@ -43,6 +43,14 @@ class BufferBase(abc.ABC):
     def reset(self):
         pass
 
+    @abc.abstractmethod
+    def state_dict(self):
+        pass
+
+    @abc.abstractmethod
+    def load_state_dict(self, state_dict):
+        pass
+
     def __call__(self, x):
         self.update(x)
 
@@ -74,22 +82,29 @@ class ScalarSmoother(BufferBase):
         self._queue.append(x)
         self._count += 1
 
+    def state_dict(self):
+        return {"queue": self._queue, "count": self._count}
+
+    def load_state_dict(self, state_dict):
+        self._count = state_dict["count"]
+        self._queue = state_dict["queue"]
+
     @property
     def mean(self):
-        return np.mean(self._queue)
+        return np.mean(self._queue) if len(self._queue) > 0 else 0.0
 
     @property
     def median(self):
-        return np.median(self._queue)
+        return np.median(self._queue) if len(self._queue) > 0 else 0.0
 
     @property
     def std(self):
-        return np.std(self._queue)
+        return np.std(self._queue) if len(self._queue) > 0 else 0.0
 
     @property
     def max(self):
-        return np.max(self._queue)
+        return np.max(self._queue) if len(self._queue) > 0 else 0.0
 
     @property
     def min(self):
-        return np.min(self._queue)
+        return np.min(self._queue) if len(self._queue) > 0 else 0.0
