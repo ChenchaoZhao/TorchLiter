@@ -1,19 +1,26 @@
 import abc
 import collections
 import warnings
+import enum
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
 from . import REPR_INDENT
+from .buffer import BufferBase
 
-__all__ = ["EngineBase"]
+__all__ = ["ComponentTypes", "EngineBase"]
 
-MODEL = nn.Module
-OPTIMIZER = optim.Optimizer
-SCHEDULER = optim.lr_scheduler._LRScheduler
-DATALOADER = torch.utils.data.DataLoader
+
+class ComponentTypes(enum.Enum):
+    """Engine component type enum: an engine contains a registry for each component type"""
+
+    MODEL = nn.Module
+    OPTIMIZER = optim.Optimizer
+    SCHEDULER = optim.lr_scheduler._LRScheduler
+    DATALOADER = torch.utils.data.DataLoader
+    BUFFER = BufferBase
 
 
 class EngineBase(abc.ABC):
