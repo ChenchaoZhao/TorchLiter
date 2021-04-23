@@ -92,38 +92,35 @@ class EngineBase(abc.ABC):
         out = {}
 
         out["engine"] = {"epoch": self.epoch, "iteration": self.iteration}
-        out["model"] = {k: v.state_dict() for k, v in self.model_registry.items()}
-        out["optimizer"] = {
-            k: v.state_dict() for k, v in self.optimizer_registry.items()
-        }
-        out["scheduler"] = {
-            k: v.state_dict() for k, v in self.scheduler_registry.items()
-        }
 
+        for rname in self._registry:
+            registry = getattr(self, rname)
+            cname = rname.split("_")[0]  # e.g. `model`
+            out[cname] = {k: v.state_dict() for k, v in registry.items()}
         return out
 
     def load_state_dict(self, state_dict):
 
-        if "engine" in state_dict:
-            epoch = int(state_dict["engine"]["epoch"])
-            iteration = int(state_dict["engine"]["iteration"])
-            if epoch < 0 or iteration < 0:
-                self.reset_engine()
-                warnings.warn("Invalid values encountered in engine state_dict.")
-            else:
-                self.epoch = epoch
-                self.iteration = iteration
-        else:
+        if "engine" not in state_dict:
             self.reset_engine()
 
-        for k, v in state_dict["model"].items():
-            self.model_registry[k].load_state_dict(v)
+        for cname, cstate in state_dict.items():
+            if cname == "engine":
+                epoch = int(state_dict["engine"]["epoch"])
+                iteration = int(state_dict["engine"]["iteration"])
 
-        for k, v in state_dict["optimizer"].items():
-            self.optimizer_registry[k].load_state_dict(v)
+                if epoch < 0 or iteration < 0:
+                    self.reset_engine()
+                    warnings.warn("Invalid values encountered in engine state_dict.")
+                else:
+                    self.epoch = epoch
+                    self.iteration = iteration
 
-        for k, v in state_dict["scheduler"].items():
-            self.scheduler_registry[k].load_state_dict(v)
+                continue
+
+            registry = getattr(self, cname)
+            for k, v in cstate:
+                registry[k].load_state_dict(v)
 
     def train(self):
         for k, v in self.model_registry.items():
