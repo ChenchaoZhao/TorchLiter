@@ -88,7 +88,6 @@ class EngineBase(abc.ABC):
         super().__delattr__(name)
 
     def state_dict(self):
-
         out = {}
 
         out["engine"] = {"epoch": self.epoch, "iteration": self.iteration}
@@ -97,6 +96,7 @@ class EngineBase(abc.ABC):
             registry = getattr(self, rname)
             cname = rname.split("_")[0]  # e.g. `model`
             out[cname] = {k: v.state_dict() for k, v in registry.items()}
+
         return out
 
     def load_state_dict(self, state_dict):
@@ -105,6 +105,7 @@ class EngineBase(abc.ABC):
             self.reset_engine()
 
         for cname, cstate in state_dict.items():
+
             if cname == "engine":
                 epoch = int(state_dict["engine"]["epoch"])
                 iteration = int(state_dict["engine"]["iteration"])
@@ -117,6 +118,8 @@ class EngineBase(abc.ABC):
                     self.iteration = iteration
 
                 continue
+
+            # otherwise
 
             registry = getattr(self, cname)
             for k, v in cstate:
