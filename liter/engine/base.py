@@ -1,36 +1,21 @@
 import abc
 import collections
 import warnings
-import enum
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from . import REPR_INDENT
-from .buffer import BufferBase
-
-__all__ = ["ComponentTypes", "EngineBase"]
+from .component_types import *
+from .. import REPR_INDENT
 
 
-class ComponentTypes(enum.Enum):
-    """Engine component type enum: an engine contains a registry for each component type"""
-
-    MODEL = nn.Module
-    OPTIMIZER = optim.Optimizer
-    SCHEDULER = optim.lr_scheduler._LRScheduler
-    DATALOADER = torch.utils.data.DataLoader
-    BUFFER = BufferBase
+__all__ = ["EngineBase"]
 
 
 class EngineBase(abc.ABC):
 
-    _registry = (
-        "model_registry",
-        "optimizer_registry",
-        "scheduler_registry",
-        "dataloader_registry",
-    )
+    _registry = tuple([f"{c}_registry" for c in map_str_to_types])
 
     def __init__(self):
         for name in self._registry:
@@ -46,54 +31,59 @@ class EngineBase(abc.ABC):
         self.current_stub = None
 
     def __setattr__(self, name, value):
+        """set attribute operator
+        - if name exists
+          - if current attr is engine component: raise current attr is a component please del it first
+          - if current attr is a registry: raise registry is immutable
+          - else: treat it as a new attr
+        - if name is new
+          - if value is a component: register in registry
+          - else: pass
+          - super() set attr
+        """
 
-        if name in self._registry:
-            assert value == {}, f"{name} should be initialized with an empty dict()"
-        else:
-            if isinstance(value, MODEL):
-                if name in self.model_registry:
-                    warnings.warn(
-                        f"Model with name {name} has already be registered. It will be overwritten."
-                    )
-                self.model_registry[name] = value
-            elif isinstance(value, OPTIMIZER):
-                if name in self.optimizer_registry:
-                    warnings.warn(
-                        f"Optimizer with name {name} has already be registered. It will be overwritten."
-                    )
-                self.optimizer_registry[name] = value
-            elif isinstance(value, SCHEDULER):
-                if name in self.scheduler_registry:
-                    warnings.warn(
-                        f"Scheduler with name {name} has already be registered. It will be overwritten."
-                    )
-                self.scheduler_registry[name] = value
-            elif isinstance(value, DATALOADER):
-                if name in self.dataloader_registry:
-                    warnings.warn(
-                        f"Dataloader with name {name} has already be registered. It will be overwritten."
-                    )
-                self.dataloader_registry[name] = value
-            else:
-                for r in self._registry:
-                    assert name not in getattr(
-                        self, r
-                    ), f"{name} has been registered in {r}"
+        if hasattr(self, name):
 
-            super().__setattr__(name, value)
+            if isinstance(getattr(self, name), COMPONENTS):
+                raise AttributeError(
+                    f"Attribute `{name}` is an engine component. You need to delete it first before assigning a new value."
+                )
+
+            if name == "_registry":
+                raise AttributeError(f"`_registry` is a protected attribute.")
+
+            if name in self._registry:
+                raise AttributeError(f"`{name}` is immutable.")
+
+        if isinstance(value, COMPONENTS):
+
+            for TYPE in COMPONENTS:
+                if isinstance(value, TYPE):
+                    typestr = map_types_to_str[TYPE]
+                    break
+            registry = getattr(self, f"{typestr}_registry")
+            assert (
+                name not in registry
+            ), f"The `{name}` is already in `{typestr}_registry`. Components should be registered and deregistered through setting and deleting attribues."
+            registry[name] = value
+
+        super().__setattr__(name, value)
 
     def __delattr__(self, name):
+        """delete attribute operator
+        if attr is a component, also deregister the component in the corresponding registry
+        """
 
         value = getattr(self, name)
 
-        if isinstance(value, MODEL):
-            del self.model_registry[name]
-        elif isinstance(value, OPTIMIZER):
-            del self.optimizer_registry[name]
-        elif isinstance(value, SCHEDULER):
-            del self.scheduler_registry[name]
-        elif isinstance(value, DATALOADER):
-            del self.dataloader_registry[name]
+        if isinstance(value, COMPONENTS):
+
+            for TYPE in COMPONENTS:
+                if isinstance(value, TYPE):
+                    typestr = map_types_to_str[TYPE]
+                    break
+            registry = getattr(self, f"{typestr}_registry")
+            del registry[name]
 
         super().__delattr__(name)
 
