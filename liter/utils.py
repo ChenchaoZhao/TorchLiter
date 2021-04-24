@@ -26,8 +26,8 @@ def instantiate_class(info: Dict):
     else:
         kwargs = {}
 
-    assert "module" in info, f"Key 'module' not in {info}"
-    assert "class" in info, f"Key 'class' not in {info}"
+    assert "module" in info, f"Key `module` not in {info}"
+    assert "class" in info, f"Key `class` not in {info}"
 
     return get_object_from_module(info["module"], info["class"])(**kwargs)
 

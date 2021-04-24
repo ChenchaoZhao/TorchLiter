@@ -95,6 +95,8 @@ class EngineBase(abc.ABC):
         for rname in self._registry:
             registry = getattr(self, rname)
             cname = rname.split("_")[0]  # e.g. `model`
+            if cname == "dataloader":
+                continue
             out[cname] = {k: v.state_dict() for k, v in registry.items()}
 
         return out
@@ -109,18 +111,15 @@ class EngineBase(abc.ABC):
             if cname == "engine":
                 epoch = int(state_dict["engine"]["epoch"])
                 iteration = int(state_dict["engine"]["iteration"])
-
                 if epoch < 0 or iteration < 0:
                     self.reset_engine()
                     warnings.warn("Invalid values encountered in engine state_dict.")
                 else:
                     self.epoch = epoch
                     self.iteration = iteration
-
                 continue
 
             # otherwise
-
             registry = getattr(self, cname)
             for k, v in cstate:
                 registry[k].load_state_dict(v)
