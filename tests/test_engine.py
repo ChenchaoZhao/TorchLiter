@@ -43,4 +43,6 @@ def test_engine():
     assert trainer.iteration == 1000 // 10
     assert trainer.total_iteration == 2000 // 10
 
-    print(trainer)
+    state_dict = trainer.state_dict()
+
+    trainer.load_state_dict(state_dict)

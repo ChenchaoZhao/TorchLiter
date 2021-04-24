@@ -120,8 +120,8 @@ class EngineBase(abc.ABC):
                 continue
 
             # otherwise
-            registry = getattr(self, cname)
-            for k, v in cstate:
+            registry = getattr(self, f"{cname}_registry")
+            for k, v in cstate.items():
                 registry[k].load_state_dict(v)
 
     def train(self):
