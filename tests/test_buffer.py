@@ -1,5 +1,6 @@
-import liter
 import pickle
+
+import liter
 
 
 def test_scaler_buffer():
