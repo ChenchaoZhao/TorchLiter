@@ -1,4 +1,3 @@
-import abc
 import collections
 import warnings
 
@@ -13,7 +12,7 @@ from .. import REPR_INDENT
 __all__ = ["EngineBase"]
 
 
-class EngineBase(abc.ABC):
+class EngineBase:
 
     _registry = tuple([f"{c}_registry" for c in map_str_to_types])
 
@@ -139,15 +138,12 @@ class EngineBase(abc.ABC):
             out[k] = v.training
         return out
 
-    @abc.abstractmethod
     def per_batch(self, batch, **kwargs):
-        pass
+        raise NotImplementedError("Method `per_batch` is not implemented")
 
-    @abc.abstractmethod
     def when_epoch_starts(self, **kwargs):
         pass
 
-    @abc.abstractmethod
     def when_epoch_finishes(self, **kwargs):
         pass
 
