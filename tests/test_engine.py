@@ -33,7 +33,7 @@ class SimpleEngine(liter.engine.EngineBase):
         pass
 
 
-def test_engine():
+def test_engine_base():
 
     trainer = SimpleEngine()
 
@@ -51,7 +51,8 @@ def test_engine():
 def test_automated():
 
     import torch
-    import torch.nn.functional
+    import torch.nn as nn
+    import torch.nn.functional as F
 
     def classification(engine, batch):
 
@@ -63,11 +64,11 @@ def test_automated():
 
         yield "loss", loss.item()
 
-        acc = (lgs.max(-1) == y).float().mean()
+        acc = (lgs.max(-1).indices == y).float().mean()
 
         yield "acc", acc.item()
 
-    eng = liter.engine.Automated.from_forward(classification, 50)
+    eng = liter.Automated.from_forward(classification, 100)
 
     assert isinstance(eng, liter.engine.Automated)
     assert hasattr(eng, "buffer_registry")
@@ -75,3 +76,13 @@ def test_automated():
     assert "acc" in eng.buffer_registry
     assert isinstance(eng.loss, liter.engine.ScalarSmoother)
     assert isinstance(eng.acc, liter.engine.ScalarSmoother)
+    assert eng.loss.window_size == 100
+
+    eng = liter.Automated.from_forward(classification)
+    eng.attach(model=nn.Linear(2, 2))
+    assert "model" in eng.model_registry
+
+    eng.per_batch((torch.randn(3, 2), torch.tensor([1, 0, 1])))
+
+    assert eng.loss._count == 1
+    assert eng.acc._count == 1
