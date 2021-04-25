@@ -147,21 +147,8 @@ class EngineBase:
     def when_epoch_finishes(self, **kwargs):
         pass
 
-    def queue(self, stubs):
-        self.stubs_in_queue.extend(stubs)
-
-    def execute(self, **kwargs):
-        while len(self.stubs_in_queue) > 0:
-            self.current_stub = self.stubs_in_queue.popleft()
-            if self.current_stub.action == "train":
-                self.per_epoch(**kwargs)
-            else:
-                try:
-                    action = getattr(self, self.current_stub.action)
-                    action(**kwargs)
-                except AttributeError as e:
-                    warnings.warn(f"{e} Job aborted.")
-            self.stubs_done.append(self.current_stub)
+    def between_iterations(self, **kwargs):
+        pass
 
     def per_epoch(self, **kwargs):
         """Train model by one epoch"""
@@ -181,6 +168,7 @@ class EngineBase:
         for batch in dataloader:
             self.per_batch(batch, **kwargs)
             self.iteration += 1
+            self.between_iterations(**kwargs)
             if self.iteration == self.epoch_length:
                 # terminate such that total iterations equal epoch length
                 # NOTE: so far assume sampling with replacement which is a good approximiation if batch is large
@@ -189,6 +177,22 @@ class EngineBase:
 
         self.epoch += 1
         self.when_epoch_finishes(**kwargs)
+
+    def queue(self, stubs):
+        self.stubs_in_queue.extend(stubs)
+
+    def execute(self, **kwargs):
+        while len(self.stubs_in_queue) > 0:
+            self.current_stub = self.stubs_in_queue.popleft()
+            if self.current_stub.action == "train":
+                self.per_epoch(**kwargs)
+            else:
+                try:
+                    action = getattr(self, self.current_stub.action)
+                    action(**kwargs)
+                except AttributeError as e:
+                    warnings.warn(f"{e} Job aborted.")
+            self.stubs_done.append(self.current_stub)
 
     def __call__(self, stubs=None, **kwargs):
         if stubs:
