@@ -7,6 +7,41 @@ __all__ = ["Automated"]
 
 
 class Automated(EngineBase):
+    """Automated Engine
+    Given a forward generator function, `from_forward` will return an Automated engine class
+
+    For example
+    ==================
+
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+
+    def classification(engine, batch):
+        # the first arg must be a place holder for engine class
+
+        engine.train()
+        x, y = batch
+        lgs = engine.model(x)
+        loss = F.cross_entropy(lgs, y)
+
+        yield "loss", loss.item()
+        # metrics will be registered as buffers
+
+        acc = (lgs.max(-1).indices == y).float().mean()
+
+        yield "acc", acc.item()
+
+
+    eng = Automated.from_forward(classification)
+
+    # attach other components such as model, optimizer, dataloader, etc.
+    eng.attach(model=nn.Linear(2, 2))
+    ...
+
+    """
+
     def forward(self, batch, **kwargs):
         raise NotImplementedError("Method `forward` must be implemented.")
 
