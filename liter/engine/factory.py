@@ -2,7 +2,7 @@ import inspect
 from .base import EngineBase
 from .buffer import ScalarSmoother, to_buffer
 
-__all__ = ["Automated", "to_engine"]
+__all__ = ["Automated"]
 
 
 class Automated(EngineBase):
@@ -18,32 +18,16 @@ class Automated(EngineBase):
             setattr(self, k, v)
 
     @classmethod
-    def from_forward(cls, func):
+    def from_forward(cls, func, smooth_window=50, **kwargs):
         assert inspect.isgeneratorfunction(
             func
         ), "The forward function must be a generator function."
-        cls.forward = func
-        return cls
-
-
-def to_engine(smooth_window=50, **kwargs):
-
-    smooth_window = max(int(smooth_window), 1)
-
-    def decorator(func):
-
-        assert inspect.isgeneratorfunction(
-            func
-        ), "The forward function must be a generator function."
-
+        smooth_window = max(int(smooth_window), 1)
         buffer_names = _find_outputs(func)
-
-        eng = Automated.from_forward(func)
+        eng = cls()
+        eng.forward = func
         eng.attach(**{n: ScalarSmoother(smooth_window, **kwargs) for n in buffer_names})
-
         return eng
-
-    return decorator
 
 
 def _find_outputs(func):

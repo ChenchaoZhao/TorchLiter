@@ -46,3 +46,32 @@ def test_engine():
     state_dict = trainer.state_dict()
 
     trainer.load_state_dict(state_dict)
+
+
+def test_automated():
+
+    import torch
+    import torch.nn.functional
+
+    def classification(engine, batch):
+
+        engine.train()
+
+        x, y = batch
+        lgs = engine.model(x)
+        loss = F.cross_entropy(lgs, y)
+
+        yield "loss", loss.item()
+
+        acc = (lgs.max(-1) == y).float().mean()
+
+        yield "acc", acc.item()
+
+    eng = liter.engine.Automated.from_forward(classification, 50)
+
+    assert isinstance(eng, liter.engine.Automated)
+    assert hasattr(eng, "buffer_registry")
+    assert "loss" in eng.buffer_registry
+    assert "acc" in eng.buffer_registry
+    assert isinstance(eng.loss, liter.engine.ScalarSmoother)
+    assert isinstance(eng.acc, liter.engine.ScalarSmoother)
