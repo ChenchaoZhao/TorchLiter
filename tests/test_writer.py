@@ -11,6 +11,7 @@ def test_writer():
         pass
 
     with liter.writer.Writer("tmp.csv", ["a", "b"], delimiter=",") as writer:
+        print(writer)
         writer({"a": 0.1, "b": 0.2})
 
     with open("tmp.csv", "r") as f:

@@ -55,3 +55,4 @@ class Writer:
         out.append(self.__class__.__name__)
         out.append(" " * REPR_INDENT + f"filepath: {self.path}")
         out.append(" " * REPR_INDENT + f"columns: {self.columns}")
+        return "\n".join(out)
