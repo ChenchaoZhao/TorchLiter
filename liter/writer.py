@@ -1,5 +1,6 @@
 import csv
 import os
+from . import REPR_INDENT
 
 __all__ = ["Writer"]
 
