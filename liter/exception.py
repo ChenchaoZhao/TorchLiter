@@ -1,6 +1,3 @@
-import Exception
-
-
 class BreakIteration(Exception):
     def __init__(self, shutdown_engine=False):
         self.shutdown_engine = shutdown_engine
