@@ -7,6 +7,7 @@ import torch.optim as optim
 
 from .component_types import *
 from .. import REPR_INDENT
+from ..exception import BreakIteration, ContinueIteration
 
 
 __all__ = ["EngineBase"]
@@ -165,15 +166,26 @@ class EngineBase:
             warnings.warn(f"{e} Iteration reset to zero.")
             self.iteration = 0
 
+        shutdown_engine = False
         for batch in dataloader:
-            self.per_batch(batch, **kwargs)
-            self.iteration += 1
-            self.between_iterations(**kwargs)
-            if self.iteration == self.epoch_length:
-                # terminate such that total iterations equal epoch length
-                # NOTE: so far assume sampling with replacement which is a good approximiation if batch is large
-                # TODO: add sampling without replacement
+            try:
+                self.per_batch(batch, **kwargs)
+                self.iteration += 1
+                self.between_iterations(**kwargs)
+                if self.iteration == self.epoch_length:
+                    # terminate such that total iterations equal epoch length
+                    # NOTE: so far assume sampling with replacement which is a good approximiation if batch is large
+                    # TODO: add sampling without replacement
+                    raise BreakIteration(False)
+            except ContinueIteration:
+                continue
+            except BreakIteration as e:
+                shutdown_engine = e.shutdown_engine
                 break
+            except Exception as e:
+                raise e
+        if shutdown_engine:
+            raise BreakIteration
 
         self.epoch += 1
         self.when_epoch_finishes(**kwargs)
@@ -185,13 +197,19 @@ class EngineBase:
         while len(self.stubs_in_queue) > 0:
             self.current_stub = self.stubs_in_queue.popleft()
             if self.current_stub.action == "train":
-                self.per_epoch(**kwargs)
+                try:
+                    self.per_epoch(**kwargs)
+                except BreakIteration:
+                    break
+                except ContinueIteration:
+                    continue
             else:
                 try:
                     action = getattr(self, self.current_stub.action)
                     action(**kwargs)
                 except AttributeError as e:
                     warnings.warn(f"{e} Job aborted.")
+                    continue
             self.stubs_done.append(self.current_stub)
 
     def __call__(self, stubs=None, **kwargs):
