@@ -153,7 +153,14 @@ class EngineBase:
 
     def per_epoch(self, **kwargs):
         """Train model by one epoch"""
-        dataloader = getattr(self, self.current_stub.dataloader)
+
+        if self.current_stub.dataloader in self.dataloader_registry:
+            dataloader = getattr(self, self.current_stub.dataloader)
+        else:
+            raise AttributeError(
+                f"`{self.current_stub.dataloader}` is not in dataloader registry."
+            )
+
         self.epoch_length = len(dataloader)
         self.when_epoch_starts(**kwargs)
         try:
@@ -166,7 +173,6 @@ class EngineBase:
             warnings.warn(f"{e} Iteration reset to zero.")
             self.iteration = 0
 
-        shutdown_engine = False
         for batch in dataloader:
             try:
                 self.per_batch(batch, **kwargs)
@@ -180,12 +186,11 @@ class EngineBase:
             except ContinueIteration:
                 continue
             except BreakIteration as e:
-                shutdown_engine = e.shutdown_engine
+                if e.shutdown_engine:
+                    raise BreakIteration
                 break
             except Exception as e:
                 raise e
-        if shutdown_engine:
-            raise BreakIteration
 
         self.epoch += 1
         self.when_epoch_finishes(**kwargs)
