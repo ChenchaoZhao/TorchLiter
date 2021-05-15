@@ -27,13 +27,7 @@ SCHEDULER = (optim.lr_scheduler._LRScheduler, optim.lr_scheduler.ReduceLROnPlate
 GRADSCALER = (torch.cuda.amp.GradScaler,)
 DATALOADER = torch.utils.data.DataLoader
 BUFFER = BufferBase
-COMPONENTS = (
-    MODEL,
-    OPTIMIZER,
-    SCHEDULER,
-    DATALOADER,
-    BUFFER,
-)
+COMPONENTS = (MODEL, OPTIMIZER, SCHEDULER, DATALOADER, BUFFER, GRADSCALER)
 
 map_str_to_types = {
     "model": MODEL,

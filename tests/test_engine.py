@@ -12,6 +12,9 @@ class SimpleEngine(liter.engine.EngineBase):
             torch.randn(1000, 1), batch_size=10
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer)
+        self.gradscaler = torch.cuda.amp.GradScaler()
+
         self.total_iteration = 0
 
     def per_batch(self, batch):
@@ -36,6 +39,9 @@ class SimpleEngine(liter.engine.EngineBase):
 def test_engine_base():
 
     trainer = SimpleEngine()
+    assert "model" in trainer.model_registry
+    assert "scheduler" in trainer.scheduler_registry
+    assert "gradscaler" in trainer.gradscaler_registry
 
     trainer(liter.stub.Train("dataloader")(2))
 
