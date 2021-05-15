@@ -95,7 +95,9 @@ class EngineBase:
         for rname in self._registry:
             registry = getattr(self, rname)
             cname = rname.split("_")[0]  # e.g. `model`
-            if cname == "dataloader":
+            if (
+                cname == "dataloader"
+            ):  # current dataloader class doesn't have state dict
                 continue
             out[cname] = {k: v.state_dict() for k, v in registry.items()}
 
