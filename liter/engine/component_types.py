@@ -10,6 +10,7 @@ __all__ = [
     "SCHEDULER",
     "DATALOADER",
     "BUFFER",
+    "GRADSCALER",
     "COMPONENTS",
     "map_str_to_types",
     "map_types_to_str",
@@ -22,7 +23,8 @@ MODEL = (
     torch.jit.ScriptModule,
 )
 OPTIMIZER = (optim.Optimizer,)
-SCHEDULER = (optim.lr_scheduler._LRScheduler,)
+SCHEDULER = (optim.lr_scheduler._LRScheduler, optim.lr_scheduler.ReduceLROnPlateau)
+GRADSCALER = (torch.cuda.amp.GradScaler,)
 DATALOADER = torch.utils.data.DataLoader
 BUFFER = BufferBase
 COMPONENTS = (
@@ -39,6 +41,7 @@ map_str_to_types = {
     "scheduler": SCHEDULER,
     "dataloader": DATALOADER,
     "buffer": BUFFER,
+    "gradscaler": GRADSCALER,
 }
 
 map_types_to_str = {v: k for k, v in map_str_to_types.items()}
