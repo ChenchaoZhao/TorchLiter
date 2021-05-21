@@ -39,6 +39,9 @@ class SimpleEngine(liter.engine.EngineBase):
 def test_engine_base():
 
     trainer = SimpleEngine()
+
+    print(trainer)
+
     assert "model" in trainer.model_registry
     assert "scheduler" in trainer.scheduler_registry
     assert "gradscaler" in trainer.gradscaler_registry
@@ -75,6 +78,8 @@ def test_automated():
         yield "acc", acc.item()
 
     eng = liter.Automated.from_forward(classification, 100)
+
+    print(eng)
 
     assert isinstance(eng, liter.engine.Automated)
     assert hasattr(eng, "buffer_registry")
