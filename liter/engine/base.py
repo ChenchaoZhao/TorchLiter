@@ -1,9 +1,6 @@
 import collections
 import warnings
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
 
 from .component_types import *
 from .. import REPR_INDENT
@@ -31,7 +28,9 @@ class EngineBase:
         self.current_stub = None
 
     def __setattr__(self, name, value):
-        """set attribute operator
+        """
+        set attribute operator.
+
         - if name exists
           - if current attr is engine component: raise current attr is a component please del it first
           - if current attr is a registry: raise registry is immutable
@@ -70,9 +69,8 @@ class EngineBase:
         super().__setattr__(name, value)
 
     def __delattr__(self, name):
-        """delete attribute operator
-        if attr is a component, also deregister the component in the corresponding registry
-        """
+        """delete attribute operator if attr is a component, also deregister the
+        component in the corresponding registry."""
 
         value = getattr(self, name)
 
@@ -154,7 +152,7 @@ class EngineBase:
         pass
 
     def per_epoch(self, **kwargs):
-        """Train model by one epoch"""
+        """Train model by one epoch."""
 
         if self.current_stub.dataloader in self.dataloader_registry:
             dataloader = getattr(self, self.current_stub.dataloader)
@@ -237,24 +235,9 @@ class EngineBase:
         out.append(" " * REPR_INDENT + f"epoch: {self.epoch}")
         out.append(" " * REPR_INDENT + f"iteration: {self.iteration}")
 
-        # model
-        out.append(" " * REPR_INDENT + f"model: ")
-        for k in self.model_registry:
-            out.append(" " * 2 * REPR_INDENT + f"{k}")
-
-        # optimizer
-        out.append(" " * REPR_INDENT + f"optimizer: ")
-        for k in self.optimizer_registry:
-            out.append(" " * 2 * REPR_INDENT + f"{k}")
-
-        # scheduler
-        out.append(" " * REPR_INDENT + f"scheduler: ")
-        for k in self.scheduler_registry:
-            out.append(" " * 2 * REPR_INDENT + f"{k}")
-
-        # dataloader
-        out.append(" " * REPR_INDENT + f"dataloader: ")
-        for k in self.dataloader_registry:
-            out.append(" " * 2 * REPR_INDENT + f"{k}")
+        for registry in self._registry:
+            out.append(" " * REPR_INDENT + f"{registry}: ")
+            for k in getattr(self, registry):
+                out.append(" " * 2 * REPR_INDENT + f"{k}")
 
         return "\n".join(out)
