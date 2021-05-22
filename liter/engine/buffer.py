@@ -120,7 +120,14 @@ class VectorSmoother(BufferBase):
     """
 
     def __init__(
-        self, alpha: float, n_dim: int, init_value: float, eps: float = 1e-8, **kwargs
+        self,
+        alpha: float,
+        n_dim: int,
+        init_value: float,
+        eps: float = 1e-8,
+        normalize: bool = True,
+        p: float = 1.0,
+        **kwargs,
     ):
         alpha = float(alpha)
         n_dim = max(1, int(n_dim))
@@ -128,15 +135,26 @@ class VectorSmoother(BufferBase):
             alpha >= 0 and alpha <= 1
         ), f"Parameter alpha = {alpha} should be in [0, 1]"
         super().__init__(
-            alpha=alpha, n_dim=n_dim, init_value=init_value, eps=eps, **kwargs
+            alpha=alpha,
+            n_dim=n_dim,
+            init_value=init_value,
+            eps=eps,
+            normalize=normalize,
+            p=p,
+            **kwargs,
         )
 
     def reset(self):
         self._count = 0
-        self._state = torch.zeros(self.n_dim, dtype=float) + self.init_value
+        self._state = torch.zeros(self.n_dim).float() + self.init_value
+        if self.normalize:
+            self._state = self.lp_normalized(self.p)
 
     def update(self, x: torch.Tensor):
         self._state = self.alpha * x + (1 - self.alpha) * self._state
+        if self.normalize:
+            self._state = self.lp_normalized(self.p)
+
         self._count += 1
 
     def state_dict(self):
