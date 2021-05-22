@@ -113,6 +113,12 @@ class ScalarSmoother(BufferBase):
 
 
 class VectorSmoother(BufferBase):
+    """
+    Exponential moving average of n-dim vector:
+
+    vector = alpha * new_vector + (1 - alpha) * vector
+    """
+
     def __init__(
         self, alpha: float, n_dim: int, init_value: float, eps: float = 1e-8, **kwargs
     ):
@@ -127,10 +133,11 @@ class VectorSmoother(BufferBase):
 
     def reset(self):
         self._count = 0
-        self._state = torch.zeros(n_dim, dtype=float) + self.init_value
+        self._state = torch.zeros(self.n_dim, dtype=float) + self.init_value
 
     def update(self, x: torch.Tensor):
         self._state = self.alpha * x + (1 - self.alpha) * self._state
+        self._count += 1
 
     def state_dict(self):
         return {"vector": self._state, "count": self._count}
@@ -140,16 +147,27 @@ class VectorSmoother(BufferBase):
         self._state = state_dict["vector"]
 
     @property
-    def raw_vector(self):
+    def vector(self):
         return self._state
 
     @property
     def l1_normalized(self):
-        return F.normalize(self._state, dim=0, p=1.0)
+        return self.lp_normalized(1.0)
 
     @property
     def l2_normalized(self):
-        return F.normalize(self._state, dim=0, p=2.0)
+        return self.lp_normalized(2.0)
+
+    @property
+    def l1_norm(self):
+        return self.lp_norm(1.0)
+
+    @property
+    def l2_norm(self):
+        return self.lp_norm(2.0)
+
+    def lp_norm(self, p: float):
+        return self._state.norm(dim=0, p=p)
 
     def lp_normalized(self, p: float):
-        return F.normalize(self._state, dim=0, p=p)
+        return F.normalize(self._state, dim=0, p=p, eps=self.eps)
