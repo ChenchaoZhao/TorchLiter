@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from . import REPR_INDENT
 
-__all__ = ["to_buffer", "BufferBase", "ScalarSmoother"]
+__all__ = ["to_buffer", "BufferBase", "ScalarSmoother", "VectorSmoother"]
 
 
 def to_buffer(name="buffer_registry"):
