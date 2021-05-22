@@ -3,6 +3,8 @@ import collections
 from functools import wraps
 
 import numpy as np
+import torch
+import torch.nn.functional as F
 
 from . import REPR_INDENT
 
@@ -27,7 +29,7 @@ def to_buffer(name="buffer_registry"):
 
 
 class BufferBase(abc.ABC):
-    """Buffer base class"""
+    """Buffer base class."""
 
     def __init__(self, *args, **kwargs):
         assert len(args) == 0, "There should not be any args only kwargs allowed."
@@ -65,7 +67,7 @@ class BufferBase(abc.ABC):
 
 
 class ScalarSmoother(BufferBase):
-    """Rolling smoothing buffer for scalars"""
+    """Rolling smoothing buffer for scalars."""
 
     def __init__(self, window_size: int, **kwargs):
 
@@ -108,3 +110,46 @@ class ScalarSmoother(BufferBase):
     @property
     def min(self):
         return np.min(self._queue) if len(self._queue) > 0 else 0.0
+
+
+class VectorSmoother(BufferBase):
+    def __init__(
+        self, alpha: float, n_dim: int, init_value: float, eps: float = 1e-8, **kwargs
+    ):
+        alpha = float(alpha)
+        n_dim = max(1, int(n_dim))
+        assert (
+            alpha >= 0 and alpha <= 1
+        ), f"Parameter alpha = {alpha} should be in [0, 1]"
+        super().__init__(
+            alpha=alpha, n_dim=n_dim, init_value=init_value, eps=eps, **kwargs
+        )
+
+    def reset(self):
+        self._count = 0
+        self._state = torch.zeros(n_dim, dtype=float) + self.init_value
+
+    def update(self, x: torch.Tensor):
+        self._state = self.alpha * x + (1 - self.alpha) * self._state
+
+    def state_dict(self):
+        return {"vector": self._state, "count": self._count}
+
+    def load_state_dict(self, state_dict):
+        self._count = state_dict["count"]
+        self._state = state_dict["vector"]
+
+    @property
+    def raw_vector(self):
+        return self._state
+
+    @property
+    def l1_normalized(self):
+        return F.normalize(self._state, dim=0, p=1.0)
+
+    @property
+    def l2_normalized(self):
+        return F.normalize(self._state, dim=0, p=2.0)
+
+    def lp_normalized(self, p: float):
+        return F.normalize(self._state, dim=0, p=p)
