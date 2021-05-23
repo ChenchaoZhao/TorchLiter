@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="torchliter",
-    version="0.1.1",
+    version="0.1.2",
     author="Chenchao Zhao",
     author_email="chenchao.zhao@gmail.com",
     description="A lightweight training tool for pytorch projects.",
