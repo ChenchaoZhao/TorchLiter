@@ -36,6 +36,23 @@ def test_scaler_buffer():
 
 def test_vector_buffer():
 
+    float_vector = liter.buffer.VectorSmoother(
+        0.5, 8, 2.0, normalize=True, device="cpu", dtype=torch.float
+    )
+    assert float_vector._state.dtype == torch.float
+
+    long_vector = liter.buffer.VectorSmoother(
+        0.5, 8, 2.0, normalize=False, device="cpu", dtype=torch.long
+    )
+    assert long_vector._state.dtype == torch.long
+
+    if torch.cuda.is_available():
+        float_vector = liter.buffer.VectorSmoother(
+            0.5, 8, 2.0, normalize=True, device="cuda:0", dtype=torch.float
+        )
+        assert float_vector._state.dtype == torch.float
+        assert float_vector._state.device == torch.device("cuda:0")
+
     vector = liter.buffer.VectorSmoother(0.5, 8, 2.0, normalize=False)
     print(vector)
 

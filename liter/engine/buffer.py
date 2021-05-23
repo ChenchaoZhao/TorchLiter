@@ -127,6 +127,8 @@ class VectorSmoother(BufferBase):
         eps: float = 1e-8,
         normalize: bool = True,
         p: float = 1.0,
+        device: str = "cpu",
+        dtype: torch.dtype = torch.float,
         **kwargs,
     ):
         alpha = float(alpha)
@@ -134,6 +136,11 @@ class VectorSmoother(BufferBase):
         assert (
             alpha >= 0 and alpha <= 1
         ), f"Parameter alpha = {alpha} should be in [0, 1]"
+
+        if dtype in (torch.int, torch.long):
+            assert (
+                not normalize
+            ), f"If dtype is `int` or `long`, normalize must be `False`. "
         super().__init__(
             alpha=alpha,
             n_dim=n_dim,
@@ -141,12 +148,15 @@ class VectorSmoother(BufferBase):
             eps=eps,
             normalize=normalize,
             p=p,
+            device=torch.device(device),
+            dtype=dtype,
             **kwargs,
         )
 
     def reset(self):
         self._count = 0
-        self._state = torch.zeros(self.n_dim).float() + self.init_value
+        self._state = torch.zeros(self.n_dim) + self.init_value
+        self._state = self._state.to(device=self.device, dtype=self.dtype)
         if self.normalize:
             self._state = self.lp_normalized(self.p)
 
