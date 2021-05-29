@@ -16,7 +16,7 @@ class EngineBase:
 
     def __init__(self):
         for name in self._registry:
-            super().__setattr__(name, {})
+            object.__setattr__(self, name, {})
         self.reset_engine()
 
     def reset_engine(self):
@@ -38,7 +38,7 @@ class EngineBase:
         - if name is new
           - if value is a component: register in registry
           - else: pass
-          - super() set attr
+          - object set attr
         """
 
         if hasattr(self, name):
@@ -66,7 +66,7 @@ class EngineBase:
             ), f"The `{name}` is already in `{typestr}_registry`. Components should be registered and deregistered through setting and deleting attribues."
             registry[name] = value
 
-        super().__setattr__(name, value)
+        object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
         """delete attribute operator if attr is a component, also deregister the
@@ -83,7 +83,7 @@ class EngineBase:
             registry = getattr(self, f"{typestr}_registry")
             del registry[name]
 
-        super().__delattr__(name)
+        object.__delattr__(self, name)
 
     def state_dict(self):
         out = {}
