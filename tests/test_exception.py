@@ -1,12 +1,9 @@
-import torch
 import liter
 
 
 def test_automated():
 
     import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
 
     def classification(engine, batch):
 
@@ -23,7 +20,7 @@ def test_automated():
 
         yield "loss", 0.0
 
-    eng = liter.Automated.from_forward(classification)
+    eng = liter.engine.Automated.from_forward(classification)
     try:
         eng.per_batch((0, 0))
     except liter.exception.ContinueIteration as e:
@@ -44,7 +41,7 @@ def test_automated():
         [(1, 1), (2, 2), (0, 0), (4, 4)], batch_size=1, shuffle=False
     )
 
-    eng(liter.Train("trainloader")(2))
+    eng(liter.stub.Train("trainloader")(2))
 
     assert eng.epoch == 2
 
@@ -53,11 +50,11 @@ def test_automated():
     eng.badloader = torch.utils.data.DataLoader(
         [(1, 1), (-1, -1), (1, 1)], batch_size=1, shuffle=False
     )
-    eng(liter.Train("badloader")(2))
+    eng(liter.stub.Train("badloader")(2))
     assert eng.epoch == 0 and eng.iteration == 1
 
     eng.reset_engine()
 
     eng.newloader = torch.utils.data.DataLoader([(1, 1), (1, 2), (-2, -2)])
-    eng(liter.Train("newloader")(2))
+    eng(liter.stub.Train("newloader")(2))
     assert eng.epoch == 2 and eng.iteration == 2

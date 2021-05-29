@@ -4,9 +4,16 @@ from setuptools import find_packages, setup
 with open("README.md", "r") as f:
     long_description = f.read()
 
+
+def version():
+    import liter
+
+    return liter.__version__
+
+
 setup(
     name="torchliter",
-    version="0.1.2",
+    version=version(),
     author="Chenchao Zhao",
     author_email="chenchao.zhao@gmail.com",
     description="A lightweight training tool for pytorch projects.",

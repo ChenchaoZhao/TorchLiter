@@ -1,7 +1,9 @@
 REPR_INDENT = 4
 
-from .engine import *
-from .stub import *
-from .utils import *
-from .writer import *
-from .exception import *
+from . import engine
+from . import stub
+from . import utils
+from . import writer
+from . import exception
+
+__version__ = "0.1.3"

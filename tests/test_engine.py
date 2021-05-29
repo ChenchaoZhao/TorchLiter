@@ -77,7 +77,7 @@ def test_automated():
 
         yield "acc", acc.item()
 
-    eng = liter.Automated.from_forward(classification, 100)
+    eng = liter.engine.Automated.from_forward(classification, 100)
 
     print(eng)
 
@@ -89,7 +89,7 @@ def test_automated():
     assert isinstance(eng.acc, liter.engine.ScalarSmoother)
     assert eng.loss.window_size == 100
 
-    eng = liter.Automated.from_forward(classification)
+    eng = liter.engine.Automated.from_forward(classification)
     eng.attach(model=nn.Linear(2, 2))
     assert "model" in eng.model_registry
 
