@@ -6,9 +6,9 @@ with open("README.md", "r") as f:
 
 
 def version():
-    import liter
+    from liter import __version__
 
-    return liter.__version__
+    return __version__
 
 
 setup(
