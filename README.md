@@ -1,4 +1,4 @@
 # TorchLiter
-[![Test Actions Status](https://github.com/ChenchaoZhao/TorchLiter/workflows/lint-test/badge.svg)](https://github.com/ChenchaoZhao/TorchLiter/actions)
+[![Test](https://github.com/ChenchaoZhao/TorchLiter/actions/workflows/lint-test.yaml/badge.svg)](https://github.com/ChenchaoZhao/TorchLiter/actions/workflows/lint-test.yaml)
 
 A truly lightweight training tool for pytorch projects
