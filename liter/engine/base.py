@@ -1,9 +1,10 @@
 import collections
 import warnings
-
+from typing import *
 
 from .component_types import *
 from .. import REPR_INDENT
+from ..stub import StubBase
 from ..exception import BreakIteration, ContinueIteration
 
 
@@ -12,7 +13,15 @@ __all__ = ["EngineBase"]
 
 class EngineBase:
 
-    _registry = tuple([f"{c}_registry" for c in map_str_to_types])
+    epoch: int
+    iteration: int
+    fractional_epoch: float
+    fractional_iteration: float
+    epoch_length: Optional[int]
+
+    _registry: Tuple[Dict[str, Any]] = tuple(
+        [f"{c}_registry" for c in map_str_to_types]
+    )
 
     def __init__(self):
         for name in self._registry:
@@ -27,7 +36,7 @@ class EngineBase:
         self.stubs_done = []
         self.current_stub = None
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any):
         """
         set attribute operator.
 
@@ -68,7 +77,7 @@ class EngineBase:
 
         object.__setattr__(self, name, value)
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str):
         """delete attribute operator if attr is a component, also deregister the
         component in the corresponding registry."""
 
@@ -85,7 +94,7 @@ class EngineBase:
 
         object.__delattr__(self, name)
 
-    def state_dict(self):
+    def state_dict(self) -> Dict[str, Dict[str, Any]]:
         out = {}
 
         out["engine"] = {"epoch": self.epoch, "iteration": self.iteration}
@@ -101,7 +110,7 @@ class EngineBase:
 
         return out
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: Dict[str, Dict[str, Any]]):
 
         if "engine" not in state_dict:
             self.reset_engine()
@@ -139,7 +148,7 @@ class EngineBase:
             out[k] = v.training
         return out
 
-    def per_batch(self, batch, **kwargs):
+    def per_batch(self, batch: Union[Tuple[Any], Dict[str, Any]], **kwargs: Any):
         raise NotImplementedError("Method `per_batch` is not implemented")
 
     def when_epoch_starts(self, **kwargs):
@@ -150,6 +159,18 @@ class EngineBase:
 
     def between_iterations(self, **kwargs):
         pass
+
+    @property
+    def fractional_epoch(self) -> float:
+        return self.epoch + self.iteration / self.epoch_length
+
+    @property
+    def fractional_iteration(self) -> float:
+        return self.iteration / self.epoch_length
+
+    @property
+    def absolute_iterations(self) -> int:
+        return self.epoch * self.epoch_length + self.iteration
 
     def per_epoch(self, **kwargs):
         """Train model by one epoch."""
@@ -195,10 +216,10 @@ class EngineBase:
         self.epoch += 1
         self.when_epoch_finishes(**kwargs)
 
-    def queue(self, stubs):
+    def queue(self, stubs: List[StubBase]):
         self.stubs_in_queue.extend(stubs)
 
-    def execute(self, **kwargs):
+    def execute(self, **kwargs: Any):
         while len(self.stubs_in_queue) > 0:
             self.current_stub = self.stubs_in_queue.popleft()
             if self.current_stub.action == "train":
@@ -217,7 +238,7 @@ class EngineBase:
                     continue
             self.stubs_done.append(self.current_stub)
 
-    def __call__(self, stubs=None, **kwargs):
+    def __call__(self, stubs: Optional[List[StubBase]] = None, **kwargs: Any):
         if stubs:
             self.queue(stubs)
         elif len(self.stubs_in_queue) == 0:
@@ -229,7 +250,7 @@ class EngineBase:
             self.current_stub.iteration = self.iteration
             self.stubs_in_queue.appendleft(self.current_stub)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = []
         out.append(self.__class__.__name__)
         out.append(" " * REPR_INDENT + f"epoch: {self.epoch}")
