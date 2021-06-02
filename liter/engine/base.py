@@ -18,6 +18,7 @@ class EngineBase:
     fractional_epoch: float
     fractional_iteration: float
     epoch_length: Optional[int]
+    absolute_iterations: int
 
     _registry: Tuple[Dict[str, Any]] = tuple(
         [f"{c}_registry" for c in map_str_to_types]
