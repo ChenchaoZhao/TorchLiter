@@ -2,11 +2,11 @@ import csv
 import os
 from . import REPR_INDENT
 
-__all__ = ["Writer"]
+__all__ = ["CSVWriter"]
 
 
-class Writer:
-    """CSV writer"""
+class CSVWriter:
+    """CSV writer."""
 
     def __init__(self, path, columns, delimiter=","):
         self.path = path
@@ -29,7 +29,7 @@ class Writer:
         self.file = None
         self.writer = None
 
-    def __enter__(self):
+    def open(self):
 
         mode = "a+" if self.path_exists else "w"
         self.file = open(self.path, mode, buffering=1)
@@ -39,10 +39,15 @@ class Writer:
         if self.write_header:
             self.writer.writeheader()
 
+    def close(self):
+        self.file.close()
+
+    def __enter__(self):
+        self.open()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.file.close()
+        self.close()
 
     def write_row(self, row_dict):
         self.writer.writerow(row_dict)

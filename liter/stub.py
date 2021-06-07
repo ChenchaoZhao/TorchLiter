@@ -1,12 +1,10 @@
-import abc
-
 from . import REPR_INDENT
 
 __all__ = ["StubBase", "Train", "Evaluate", "Lambda"]
 
 
-class StubBase(abc.ABC):
-    """Base class for Stubs"""
+class StubBase:
+    """Base class for Stubs."""
 
     def __init__(self, *args, **kwargs):
         assert len(args) == 0, "There should not be any args only kwargs allowed."
@@ -41,7 +39,7 @@ class StubBase(abc.ABC):
 
 
 class Train(StubBase):
-    """Train stub"""
+    """Train stub."""
 
     def __init__(self, dataloader: str, iteration: int = 0, **kwargs):
 
@@ -61,7 +59,7 @@ class Train(StubBase):
 
 
 class Evaluate(StubBase):
-    """Evaluation stub"""
+    """Evaluation stub."""
 
     def __init__(self, dataloader: str, **kwargs):
 
@@ -77,7 +75,7 @@ class Evaluate(StubBase):
 
 
 class Lambda(StubBase):
-    """General action stub"""
+    """General action stub."""
 
     def __init__(self, action: str, **kwargs):
 
