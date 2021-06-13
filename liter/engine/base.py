@@ -2,11 +2,10 @@ import collections
 import warnings
 from typing import *
 
-from .component_types import *
 from .. import REPR_INDENT
-from ..stub import StubBase
 from ..exception import BreakIteration, ContinueIteration
-
+from ..stub import StubBase
+from .component_types import *
 
 __all__ = ["EngineBase"]
 
@@ -42,7 +41,8 @@ class EngineBase:
         set attribute operator.
 
         - if name exists
-          - if current attr is engine component: raise current attr is a component please del it first
+          - if current attr is engine component:
+          raise current attr is a component please del it first
           - if current attr is a registry: raise registry is immutable
           - else: treat it as a new attr
         - if name is new
@@ -55,11 +55,12 @@ class EngineBase:
 
             if isinstance(getattr(self, name), COMPONENTS):
                 raise AttributeError(
-                    f"Attribute `{name}` is an engine component. You need to delete it first before assigning a new value."
+                    f"Attribute `{name}` is an engine component."
+                    " You need to delete it first before assigning a new value."
                 )
 
             if name == "_registry":
-                raise AttributeError(f"`_registry` is a protected attribute.")
+                raise AttributeError("`_registry` is a protected attribute.")
 
             if name in self._registry:
                 raise AttributeError(f"`{name}` is immutable.")
@@ -73,7 +74,9 @@ class EngineBase:
             registry = getattr(self, f"{typestr}_registry")
             assert (
                 name not in registry
-            ), f"The `{name}` is already in `{typestr}_registry`. Components should be registered and deregistered through setting and deleting attribues."
+            ), f"The `{name}` is already in `{typestr}_registry`. "
+            "Components should be registered and deregistered "
+            "through setting and deleting attribues."
             registry[name] = value
 
         object.__setattr__(self, name, value)
@@ -202,7 +205,8 @@ class EngineBase:
                 self.between_iterations(**kwargs)
                 if self.iteration == self.epoch_length:
                     # terminate such that total iterations equal epoch length
-                    # NOTE: so far assume sampling with replacement which is a good approximiation if batch is large
+                    # NOTE: so far assume sampling with replacement
+                    # which is a good approximiation if batch is large
                     # TODO: add sampling without replacement
                     raise BreakIteration(False)
             except ContinueIteration:
