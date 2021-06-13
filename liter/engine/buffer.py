@@ -140,7 +140,7 @@ class VectorSmoother(BufferBase):
         if dtype in (torch.int, torch.long):
             assert (
                 not normalize
-            ), f"If dtype is `int` or `long`, normalize must be `False`. "
+            ), "If dtype is `int` or `long`, normalize must be `False`. "
         super().__init__(
             alpha=alpha,
             n_dim=n_dim,

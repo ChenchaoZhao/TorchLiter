@@ -37,8 +37,11 @@ def build_instance_from_dict(
 ):
     """
     Params:
-        config: Dict, config of the instance with keys ('instance_name_1', 'instance_name_2', default_key)
+        config: Dict, config of the instance with keys
+        ('instance_name_1', 'instance_name_2', default_key)
+
         source_key: str, name of the instance
+
         default_key: str, name of the key of default params in config
     """
 

@@ -1,5 +1,6 @@
 import csv
 import os
+
 from . import REPR_INDENT
 
 __all__ = ["CSVWriter"]
@@ -20,7 +21,8 @@ class CSVWriter:
                 self.write_header = False
             else:
                 raise ValueError(
-                    f"Header in file is inconsistent with columns: header: {header}; columns {columns}"
+                    "Header in file is inconsistent with columns: "
+                    f"header: {header}; columns {columns}"
                 )
         else:
             self.columns = columns

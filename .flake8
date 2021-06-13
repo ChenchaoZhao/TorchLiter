@@ -6,7 +6,7 @@ ignore = W503, E203, E221, C901, C408, E741, C407, E741, B017, F405, F403
 max-line-length = 100
 max-complexity = 18
 select = B,C,E,F,W,T4,B9
-exclude = build
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,.ipynb_checkpoints
 per-file-ignores =
   **/__init__.py:F401,F403,E402
   tests/**.py:F401,E402
