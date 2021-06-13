@@ -1,5 +1,7 @@
 import pickle
+
 import torch
+
 import liter
 
 
@@ -159,7 +161,7 @@ def test_decorator():
 
     out = sc.generator()
 
-    assert out == None
+    assert out is None
 
     for idx in range(3):
         assert sc.buffer[f"arg{idx}"].mean == idx
