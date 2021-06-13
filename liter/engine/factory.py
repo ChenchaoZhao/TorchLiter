@@ -1,5 +1,6 @@
 import inspect
 from functools import partial
+
 from .base import EngineBase
 from .buffer import ScalarSmoother, to_buffer
 
@@ -7,8 +8,9 @@ __all__ = ["Automated"]
 
 
 class Automated(EngineBase):
-    """Automated Engine
-    Given a forward generator function, `from_forward` will return an Automated engine class
+    """
+    Automated Engine Given a forward generator function, `from_forward` will
+    return an Automated engine class.
 
     For example
     ==================
@@ -39,7 +41,6 @@ class Automated(EngineBase):
     # attach other components such as model, optimizer, dataloader, etc.
     eng.attach(model=nn.Linear(2, 2))
     ...
-
     """
 
     def forward(self, batch, **kwargs):
@@ -57,7 +58,8 @@ class Automated(EngineBase):
     def from_forward(cls, func, smooth_window=50, **kwargs):
         assert inspect.isgeneratorfunction(
             func
-        ), "The forward function must be a generator function with first arg being engine class placeholder."
+        ), "The forward function must be a generator function"
+        " with first arg being engine class placeholder."
         smooth_window = max(int(smooth_window), 1)
         buffer_names = _find_outputs(func)
         eng = cls()
