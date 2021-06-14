@@ -55,6 +55,23 @@ class Automated(EngineBase):
             **{n: ScalarSmoother(smooth_window, **kwargs) for n in buffer_names}
         )
 
+    @classmethod
+    def config(cls, **kwargs):
+        """
+        Used as decorator for core function allowing user to attach additional
+        init keyword args Examples.
+
+        @Automated
+        def core_func(ng, batch):
+            ...
+
+
+        @Automated.config(smooth_window=100)
+        def core_func(ng, batch):
+            ...
+        """
+        return partial(cls, **kwargs)
+
     def core(self, batch, **kwargs):
         raise NotImplementedError("Method `core` must be implemented.")
 
