@@ -85,15 +85,7 @@ class Automated(EngineBase):
 
     @classmethod
     def from_forward(cls, func, smooth_window=50, **kwargs):
-        assert inspect.isgeneratorfunction(
-            func
-        ), "The forward function must be a generator function"
-        " with first arg being engine class placeholder."
-        smooth_window = max(int(smooth_window), 1)
-        buffer_names = _find_outputs(func)
-        eng = cls()
-        eng.core = partial(func, eng)
-        eng.attach(**{n: ScalarSmoother(smooth_window, **kwargs) for n in buffer_names})
+        eng = cls(func, smooth_window)
         return eng
 
 
