@@ -19,7 +19,7 @@ class Automated(EngineBase):
     import torch.nn as nn
     import torch.nn.functional as F
 
-
+    @Automated.config(smooth_window=100)
     def classification(engine, batch):
         # the first arg must be a place holder for engine class
 
@@ -35,20 +35,51 @@ class Automated(EngineBase):
 
         yield "acc", acc.item()
 
-
-    eng = Automated.from_forward(classification)
+    # or alternatively
+    # `from_forward` will be deprecated
+    classification = Automated.from_forward(classification)
 
     # attach other components such as model, optimizer, dataloader, etc.
     eng.attach(model=nn.Linear(2, 2))
     ...
     """
 
-    def forward(self, batch, **kwargs):
-        raise NotImplementedError("Method `forward` must be implemented.")
+    def __init__(self, core_function, smooth_windown=50, **kwargs):
+        assert inspect.isgeneratorfunction(core_function), (
+            "The forward function must be a generator function "
+            "with first arg being engine class placeholder."
+        )
+        super().__init__()
+        self.core = partial(core_function, self)
+        smooth_window = max(int(smooth_windown), 1)
+        buffer_names = _find_outputs(core_function)
+        self.attach(
+            **{n: ScalarSmoother(smooth_window, **kwargs) for n in buffer_names}
+        )
+
+    @classmethod
+    def config(cls, **kwargs):
+        """
+        Used as decorator for core function allowing user to attach additional
+        init keyword args Examples.
+
+        @Automated
+        def core_func(ng, batch):
+            ...
+
+
+        @Automated.config(smooth_window=100)
+        def core_func(ng, batch):
+            ...
+        """
+        return partial(cls, **kwargs)
+
+    def core(self, batch, **kwargs):
+        raise NotImplementedError("Method `core` must be implemented.")
 
     @to_buffer("buffer_registry")
     def per_batch(self, batch, **kwargs):
-        return self.forward(batch, **kwargs)
+        return self.core(batch, **kwargs)
 
     def attach(self, **kwargs):
         for k, v in kwargs.items():
@@ -56,15 +87,12 @@ class Automated(EngineBase):
 
     @classmethod
     def from_forward(cls, func, smooth_window=50, **kwargs):
-        assert inspect.isgeneratorfunction(
-            func
-        ), "The forward function must be a generator function"
-        " with first arg being engine class placeholder."
-        smooth_window = max(int(smooth_window), 1)
-        buffer_names = _find_outputs(func)
-        eng = cls()
-        eng.forward = partial(func, eng)
-        eng.attach(**{n: ScalarSmoother(smooth_window, **kwargs) for n in buffer_names})
+        """
+        This method is deprecated.
+
+        Use init as decorator or cls.config(...) as decorator
+        """
+        eng = cls(func, smooth_window)
         return eng
 
 
