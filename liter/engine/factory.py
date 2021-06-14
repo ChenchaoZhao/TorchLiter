@@ -44,6 +44,10 @@ class Automated(EngineBase):
     """
 
     def __init__(self, core_function, smooth_windown=50, **kwargs):
+        assert inspect.isgeneratorfunction(core_function), (
+            "The forward function must be a generator function "
+            "with first arg being engine class placeholder."
+        )
         self.core = core_function
         smooth_window = max(int(smooth_windown), 1)
         buffer_names = _find_outputs(core_function)
