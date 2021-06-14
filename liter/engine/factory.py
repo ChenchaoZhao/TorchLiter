@@ -19,7 +19,7 @@ class Automated(EngineBase):
     import torch.nn as nn
     import torch.nn.functional as F
 
-
+    @Automated.config(smooth_window=100)
     def classification(engine, batch):
         # the first arg must be a place holder for engine class
 
@@ -35,8 +35,9 @@ class Automated(EngineBase):
 
         yield "acc", acc.item()
 
-
-    eng = Automated.from_forward(classification)
+    # or alternatively
+    # `from_forward` will be deprecated
+    classification = Automated.from_forward(classification)
 
     # attach other components such as model, optimizer, dataloader, etc.
     eng.attach(model=nn.Linear(2, 2))
@@ -86,6 +87,11 @@ class Automated(EngineBase):
 
     @classmethod
     def from_forward(cls, func, smooth_window=50, **kwargs):
+        """
+        This method is deprecated.
+
+        Use init as decorator or cls.config(...) as decorator
+        """
         eng = cls(func, smooth_window)
         return eng
 
