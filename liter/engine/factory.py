@@ -48,7 +48,8 @@ class Automated(EngineBase):
             "The forward function must be a generator function "
             "with first arg being engine class placeholder."
         )
-        self.core = core_function
+        super().__init__()
+        self.core = partial(core_function, self)
         smooth_window = max(int(smooth_windown), 1)
         buffer_names = _find_outputs(core_function)
         self.attach(
