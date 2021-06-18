@@ -1,10 +1,12 @@
 import abc
 import collections
 from functools import wraps
+from typing import *
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torch import Tensor
 
 from . import REPR_INDENT
 
@@ -64,6 +66,59 @@ class BufferBase(abc.ABC):
                 continue
             out.append(" " * REPR_INDENT + f"{k}: {v}")
         return "\n".join(out)
+
+
+class ExponentialMovingAverage(BufferBase):
+    """
+    Exponential Moving Average of a series of Tensors.
+
+    update rule:
+        EMA[x[t]] := (1 - alpha) * EMA[x[t-1]] + alpha * x[t]
+    diff:
+        delta[x[t]] := x[t] - EMA[x[t-1]]
+    """
+
+    mean: Union[float, Tensor]
+    variance: Union[float, Tensor]
+
+    def __init__(
+        self,
+        alpha: Optional[float] = None,
+        window_size: Optional[int] = None,
+        **kwargs: Any,
+    ):
+        if alpha is None:
+            assert (
+                window_size is not None
+            ), "Init args `alpha` and `window_size` cannot be both `None`."
+        self.alpha = alpha if alpha is None else 1 / window_size
+        assert 0 <= self.alpha <= 1, "Value `alpha` should be in [0, 1]."
+
+    def reset(self):
+        self.mean = 0.0
+        self.variance = 0.0
+        self._count = 0
+
+    def update(self, x):
+        delta = x - self.mean
+
+        self.mean = self.mean + self.alpha * delta
+        self.variance = (1 - self.alpha) * (self.variance + self.alpha * delta ** 2)
+
+        self._count += 1
+        self._delta = delta
+
+    def state_dict(self):
+        return {"count": self._count, "mean": self.mean, "variance": self.variance}
+
+    def load_state_dict(self, state_dict):
+        self._count = max(state_dict["count"], 0)
+        self.mean = state_dict["mean"]
+        self.variance = state_dict["variance"]
+
+    @property
+    def std(self):
+        return self.variance ** 0.5
 
 
 class ScalarSmoother(BufferBase):
