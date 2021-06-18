@@ -46,7 +46,7 @@ class BufferBase(abc.ABC):
         self.reset()
 
     @abc.abstractmethod
-    def update(self, x):
+    def update(self, x: Any):
         pass
 
     @abc.abstractmethod
@@ -61,7 +61,7 @@ class BufferBase(abc.ABC):
     def load_state_dict(self, state_dict):
         pass
 
-    def __call__(self, x):
+    def __call__(self, x: Any):
         self.update(x)
 
     def __repr__(self):
@@ -99,7 +99,7 @@ class ExponentialMovingAverage(BufferBase):
             ), "Init args `alpha` and `window_size` cannot be both `None`."
             alpha = 1.0 / window_size
         assert 0 <= alpha <= 1, "Value `alpha` should be in [0, 1]."
-        super().__init__(alpha=alpha)
+        super().__init__(alpha=alpha, **kwargs)
 
     def reset(self):
         self.mean = 0.0
