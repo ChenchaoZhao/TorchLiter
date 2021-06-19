@@ -1,8 +1,9 @@
 import inspect
 from functools import partial
+from typing import *
 
 from .base import EngineBase
-from .buffer import ScalarSmoother, to_buffer
+from .buffer import *
 
 __all__ = ["Automated"]
 
@@ -44,18 +45,27 @@ class Automated(EngineBase):
     ...
     """
 
-    def __init__(self, core_function, smooth_windown=50, **kwargs):
+    def __init__(
+        self,
+        core_function: Callable,
+        alpha: float = 1e-2,
+        smooth_windown: int = 50,
+        buffer_types: Union[
+            Dict[str, BufferBase], BufferBase
+        ] = ExponentialMovingAverage,
+        **kwargs
+    ):
         assert inspect.isgeneratorfunction(core_function), (
             "The forward function must be a generator function "
             "with first arg being engine class placeholder."
         )
         super().__init__()
         self.core = partial(core_function, self)
-        smooth_window = max(int(smooth_windown), 1)
         buffer_names = _find_outputs(core_function)
-        self.attach(
-            **{n: ScalarSmoother(smooth_window, **kwargs) for n in buffer_names}
-        )
+        if isinstance(buffer_types, BufferBase):
+            buffer_types = dict.fromkeys(buffer_names, buffer_types)
+
+        self.attach(**{n: buffer_types[n](alpha, smooth_window) for n in buffer_names})
 
     @classmethod
     def config(cls, **kwargs):
