@@ -1,5 +1,5 @@
-REPR_INDENT = 4
+REPR_INDENT = 2
 
 from . import engine, exception, stub, utils, writer
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
