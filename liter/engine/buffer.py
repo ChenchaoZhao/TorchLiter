@@ -1,14 +1,21 @@
-import abc
 import collections
 from functools import wraps
+from typing import *
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torch import Tensor
 
 from . import REPR_INDENT
 
-__all__ = ["to_buffer", "BufferBase", "ScalarSmoother", "VectorSmoother"]
+__all__ = [
+    "to_buffer",
+    "BufferBase",
+    "ExponentialMovingAverage",
+    "ScalarSmoother",
+    "VectorSmoother",
+]
 
 
 def to_buffer(name="buffer_registry"):
@@ -28,7 +35,7 @@ def to_buffer(name="buffer_registry"):
     return decorator
 
 
-class BufferBase(abc.ABC):
+class BufferBase:
     """Buffer base class."""
 
     def __init__(self, *args, **kwargs):
@@ -37,23 +44,19 @@ class BufferBase(abc.ABC):
             setattr(self, k, v)
         self.reset()
 
-    @abc.abstractmethod
-    def update(self, x):
-        pass
+    def update(self, x: Any):
+        raise NotImplementedError("Method `update` must be implemented.")
 
-    @abc.abstractmethod
     def reset(self):
-        pass
+        raise NotImplementedError("Method `reset` must be implemented.")
 
-    @abc.abstractmethod
     def state_dict(self):
-        pass
+        raise NotImplementedError("Method `state_dict` must be implemented.")
 
-    @abc.abstractmethod
     def load_state_dict(self, state_dict):
-        pass
+        raise NotImplementedError("Method `load_state_dict` must be implemented.")
 
-    def __call__(self, x):
+    def __call__(self, x: Any):
         self.update(x)
 
     def __repr__(self):
@@ -64,6 +67,60 @@ class BufferBase(abc.ABC):
                 continue
             out.append(" " * REPR_INDENT + f"{k}: {v}")
         return "\n".join(out)
+
+
+class ExponentialMovingAverage(BufferBase):
+    """
+    Exponential Moving Average of a series of Tensors.
+
+    update rule:
+        EMA[x[t]] := (1 - alpha) * EMA[x[t-1]] + alpha * x[t]
+    diff:
+        delta[x[t]] := x[t] - EMA[x[t-1]]
+    """
+
+    mean: Union[float, Tensor]
+    variance: Union[float, Tensor]
+
+    def __init__(
+        self,
+        alpha: Optional[float] = None,
+        window_size: Optional[int] = None,
+        **kwargs: Any,
+    ):
+        if alpha is None:
+            assert (
+                window_size is not None
+            ), "Init args `alpha` and `window_size` cannot be both `None`."
+            alpha = 1.0 / window_size
+        assert 0 <= alpha <= 1, "Value `alpha` should be in [0, 1]."
+        super().__init__(alpha=alpha, **kwargs)
+
+    def reset(self):
+        self.mean = 0.0
+        self.variance = 0.0
+        self._count = 0
+
+    def update(self, x):
+        delta = x - self.mean
+
+        self.mean = self.mean + self.alpha * delta
+        self.variance = (1 - self.alpha) * (self.variance + self.alpha * delta ** 2)
+
+        self._count += 1
+        self._delta = delta
+
+    def state_dict(self):
+        return {"count": self._count, "mean": self.mean, "variance": self.variance}
+
+    def load_state_dict(self, state_dict):
+        self._count = max(state_dict["count"], 0)
+        self.mean = state_dict["mean"]
+        self.variance = state_dict["variance"]
+
+    @property
+    def std(self):
+        return self.variance ** 0.5
 
 
 class ScalarSmoother(BufferBase):
@@ -112,11 +169,14 @@ class ScalarSmoother(BufferBase):
         return np.min(self._queue) if len(self._queue) > 0 else 0.0
 
 
-class VectorSmoother(BufferBase):
+class VectorSmoother(ExponentialMovingAverage):
     """
     Exponential moving average of n-dim vector:
 
     vector = alpha * new_vector + (1 - alpha) * vector
+
+    Additional features:
+        l_p normalization
     """
 
     def __init__(
@@ -133,9 +193,6 @@ class VectorSmoother(BufferBase):
     ):
         alpha = float(alpha)
         n_dim = max(1, int(n_dim))
-        assert (
-            alpha >= 0 and alpha <= 1
-        ), f"Parameter alpha = {alpha} should be in [0, 1]"
 
         if dtype in (torch.int, torch.long):
             assert (
@@ -155,28 +212,28 @@ class VectorSmoother(BufferBase):
 
     def reset(self):
         self._count = 0
-        self._state = torch.zeros(self.n_dim) + self.init_value
-        self._state = self._state.to(device=self.device, dtype=self.dtype)
+        self.mean = torch.zeros(self.n_dim) + self.init_value
+        self.mean = self.mean.to(device=self.device, dtype=self.dtype)
+        self.variance = torch.zeros_like(self.mean)
         if self.normalize:
-            self._state = self.lp_normalized(self.p)
+            self.mean = self.lp_normalized(self.p)
 
     def update(self, x: torch.Tensor):
-        self._state = self.alpha * x + (1 - self.alpha) * self._state
+        super().update(x)
         if self.normalize:
-            self._state = self.lp_normalized(self.p)
-
-        self._count += 1
+            self.mean = self.lp_normalized(self.p)
 
     def state_dict(self):
-        return {"vector": self._state, "count": self._count}
+        return {"mean": self.mean, "variance": self.variance, "count": self._count}
 
     def load_state_dict(self, state_dict):
         self._count = state_dict["count"]
-        self._state = state_dict["vector"]
+        self.mean = state_dict["mean"]
+        self.variance = state_dict["variance"]
 
     @property
     def vector(self):
-        return self._state
+        return self.mean
 
     @property
     def l1_normalized(self):
@@ -195,7 +252,7 @@ class VectorSmoother(BufferBase):
         return self.lp_norm(2.0)
 
     def lp_norm(self, p: float):
-        return self._state.norm(dim=0, p=p)
+        return self.mean.norm(dim=0, p=p)
 
     def lp_normalized(self, p: float):
-        return F.normalize(self._state, dim=0, p=p, eps=self.eps)
+        return F.normalize(self.mean, dim=0, p=p, eps=self.eps)

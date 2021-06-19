@@ -85,9 +85,8 @@ def test_automated():
     assert hasattr(eng, "buffer_registry")
     assert "loss" in eng.buffer_registry
     assert "acc" in eng.buffer_registry
-    assert isinstance(eng.loss, liter.engine.ScalarSmoother)
-    assert isinstance(eng.acc, liter.engine.ScalarSmoother)
-    assert eng.loss.window_size == 100
+    assert isinstance(eng.loss, liter.engine.buffer.BufferBase)
+    assert isinstance(eng.acc, liter.engine.buffer.BufferBase)
 
     eng = liter.engine.Automated.from_forward(classification)
     eng.attach(model=nn.Linear(2, 2))
