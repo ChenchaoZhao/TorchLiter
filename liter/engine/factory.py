@@ -49,10 +49,8 @@ class Automated(EngineBase):
         self,
         core_function: Callable,
         alpha: float = 1e-2,
-        smooth_windown: int = 50,
-        buffer_types: Union[
-            Dict[str, BufferBase], BufferBase
-        ] = ExponentialMovingAverage,
+        smooth_window: int = 50,
+        buffer_type: BufferBase = ExponentialMovingAverage,
         **kwargs
     ):
         assert inspect.isgeneratorfunction(core_function), (
@@ -62,10 +60,7 @@ class Automated(EngineBase):
         super().__init__()
         self.core = partial(core_function, self)
         buffer_names = _find_outputs(core_function)
-        if isinstance(buffer_types, BufferBase):
-            buffer_types = dict.fromkeys(buffer_names, buffer_types)
-
-        self.attach(**{n: buffer_types[n](alpha, smooth_window) for n in buffer_names})
+        self.attach(**{n: buffer_type(alpha, smooth_window) for n in buffer_names})
 
     @classmethod
     def config(cls, **kwargs):
@@ -102,7 +97,7 @@ class Automated(EngineBase):
 
         Use init as decorator or cls.config(...) as decorator
         """
-        eng = cls(func, smooth_window)
+        eng = cls(func, smooth_window=smooth_window, **kwargs)
         return eng
 
 
