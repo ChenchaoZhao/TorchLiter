@@ -1,4 +1,3 @@
-import abc
 import collections
 from functools import wraps
 from typing import *
@@ -36,7 +35,7 @@ def to_buffer(name="buffer_registry"):
     return decorator
 
 
-class BufferBase(abc.ABC):
+class BufferBase:
     """Buffer base class."""
 
     def __init__(self, *args, **kwargs):
@@ -45,21 +44,17 @@ class BufferBase(abc.ABC):
             setattr(self, k, v)
         self.reset()
 
-    @abc.abstractmethod
     def update(self, x: Any):
-        pass
+        raise NotImplementedError("Method `update` must be implemented.")
 
-    @abc.abstractmethod
     def reset(self):
-        pass
+        raise NotImplementedError("Method `reset` must be implemented.")
 
-    @abc.abstractmethod
     def state_dict(self):
-        pass
+        raise NotImplementedError("Method `state_dict` must be implemented.")
 
-    @abc.abstractmethod
     def load_state_dict(self, state_dict):
-        pass
+        raise NotImplementedError("Method `load_state_dict` must be implemented.")
 
     def __call__(self, x: Any):
         self.update(x)
