@@ -285,7 +285,10 @@ class Engine(EngineBase):
     }
 
     def attach_event(self, handler: EventHandler):
-        self._event_handlers[handler.category].append(handler)
+        if handler.category:
+            self._event_handlers[handler.category].append(handler)
+        else:
+            raise TypeError("Category of handler must be specified.")
 
     def when_epoch_starts(self):
         for h in self._event_handlers[EventCategory.EPOCH_STARTS]:
