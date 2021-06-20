@@ -284,6 +284,9 @@ class Engine(EngineBase):
         EventCategory.AFTER_ITERATION: [],
     }
 
+    def attach_event(self, handler: EventHandler):
+        self._event_handlers[handler.category].append(handler)
+
     def when_epoch_starts(self):
         for h in self._event_handlers[EventCategory.EPOCH_STARTS]:
             h(self)
