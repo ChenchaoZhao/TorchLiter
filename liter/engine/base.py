@@ -161,7 +161,10 @@ class EngineBase:
     def when_epoch_finishes(self, **kwargs):
         pass
 
-    def between_iterations(self, **kwargs):
+    def before_iteration(self, **kwargs):
+        pass
+
+    def after_iteration(self, **kwargs):
         pass
 
     @property
@@ -200,9 +203,10 @@ class EngineBase:
 
         for batch in dataloader:
             try:
-                self.per_batch(batch, **kwargs)
+                self.before_iteration(**kwargs)
+                self.per_batch(batch, **kwargs)  # the iteration
                 self.iteration += 1
-                self.between_iterations(**kwargs)
+                self.after_iteration(**kwargs)
                 if self.iteration == self.epoch_length:
                     # terminate such that total iterations equal epoch length
                     # NOTE: so far assume sampling with replacement
