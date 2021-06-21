@@ -3,10 +3,10 @@ import warnings
 from typing import *
 
 from .. import REPR_INDENT
+from ..events import *
 from ..exception import BreakIteration, ContinueIteration
 from ..stub import StubBase
 from .component_types import *
-from .events import *
 
 __all__ = ["Engine", "EngineBase"]
 

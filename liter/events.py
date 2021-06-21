@@ -1,7 +1,8 @@
 from enum import Enum
+from functools import partial
 from typing import *
 
-from .base import Engine
+Engine = TypeVar("Engine")
 
 __all__ = [
     "EventCategory",
@@ -67,7 +68,7 @@ class EventHandler:
         """
         if args:
             raise ValueError("Only kwargs are allowed.")
-        return itertools.partial(cls, **kwargs)
+        return partial(cls, **kwargs)
 
 
 class PreEpochHandler(EventHandler):
