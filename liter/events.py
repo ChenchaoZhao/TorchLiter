@@ -24,11 +24,20 @@ class EventHandler:
 
     category: EventCategory
 
-    def __init__(self, action_function: Optional[Callable] = None, **kwargs):
+    def __init__(
+        self,
+        action_function: Optional[Callable[[Engine], None]] = None,
+        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        **kwargs
+    ):
         self.action_function = action_function
+        self.trigger_function = trigger_function
 
-    def trigger(self, *args, **kwargs) -> bool:
-        return True
+    def trigger(self, engine: Engine) -> bool:
+        if self.trigger_function is None:
+            return True
+
+        return self.trigger_function(engine)
 
     def action(self, *args, **kwargs):
         if self.action_function is None:
@@ -60,16 +69,64 @@ class EventHandler:
 
 
 class PreEpochHandler(EventHandler):
+    """Hanldes events when a new epoch starts."""
+
     category = EventCategory.EPOCH_STARTS
+
+    def __init__(
+        self,
+        action_function: Callable[[Engine], None],
+        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        every: int = 1,
+    ):
+        if trigger_function is None:
+            self.trigger_function = lambda engine: engine.epoch % every == 0
+        super().__init__(action_function, trigger_function)
 
 
 class PostEpochHandler(EventHandler):
+    """Hanldes events when a new epoch finishes."""
+
     category = EventCategory.EPOCH_STARTS
+
+    def __init__(
+        self,
+        action_function: Callable[[Engine], None],
+        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        every: int = 1,
+    ):
+        if trigger_function is None:
+            self.trigger_function = lambda engine: engine.epoch % every == 0
+        super().__init__(action_function, trigger_function)
 
 
 class PreIterationHandler(EventHandler):
+    """Handles events before each iteration."""
+
     category = EventCategory.BEFORE_ITERATION
+
+    def __init__(
+        self,
+        action_function: Callable[[Engine], None],
+        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        every: int = 1,
+    ):
+        if trigger_function is None:
+            self.trigger_function = lambda engine: engine.iteration % every == 0
+        super().__init__(action_function, trigger_function)
 
 
 class PostIterationHandler(EventHandler):
+    """Handles events after each iteration."""
+
     category = EventCategory.AFTER_ITERATION
+
+    def __init__(
+        self,
+        action_function: Callable[[Engine], None],
+        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        every: int = 1,
+    ):
+        if trigger_function is None:
+            self.trigger_function = lambda engine: engine.iteration % every == 0
+        super().__init__(action_function, trigger_function)
