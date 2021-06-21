@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import *
 
+from .engine import Engine
+
 __all__ = [
     "EventCategory",
     "EventHandler",
