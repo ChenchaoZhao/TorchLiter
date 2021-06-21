@@ -83,7 +83,7 @@ class PreEpochHandler(EventHandler):
         every: int = 1,
     ):
         if trigger_function is None:
-            self.trigger_function = lambda engine: engine.epoch % every == 0
+            trigger_function = lambda engine: engine.epoch % every == 0  # noqa
         super().__init__(action_function, trigger_function)
 
 
@@ -99,7 +99,7 @@ class PostEpochHandler(EventHandler):
         every: int = 1,
     ):
         if trigger_function is None:
-            self.trigger_function = lambda engine: engine.epoch % every == 0
+            trigger_function = lambda engine: engine.epoch % every == 0  # noqa
         super().__init__(action_function, trigger_function)
 
 
@@ -115,7 +115,7 @@ class PreIterationHandler(EventHandler):
         every: int = 1,
     ):
         if trigger_function is None:
-            self.trigger_function = lambda engine: engine.iteration % every == 0
+            trigger_function = lambda engine: engine.iteration % every == 0  # noqa
         super().__init__(action_function, trigger_function)
 
 
@@ -131,5 +131,5 @@ class PostIterationHandler(EventHandler):
         every: int = 1,
     ):
         if trigger_function is None:
-            self.trigger_function = lambda engine: engine.iteration % every == 0
+            trigger_function = lambda engine: engine.iteration % every == 0  # noqa
         super().__init__(action_function, trigger_function)
