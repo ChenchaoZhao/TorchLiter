@@ -168,6 +168,9 @@ class Engine(EngineBase):
         else:
             raise TypeError("Category of handler must be specified.")
 
+    def list_events(self):
+        return self._event_handlers
+
     def when_epoch_starts(self):
         for h in self._event_handlers[EventCategory.EPOCH_STARTS]:
             h(self)
