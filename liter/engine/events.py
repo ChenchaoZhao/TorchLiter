@@ -11,6 +11,7 @@ __all__ = [
     "PostEpochHandler",
     "PreIterationHandler",
     "PostIterationHandler",
+    "Engine",
 ]
 
 
