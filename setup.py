@@ -16,6 +16,6 @@ setup(
     packages=find_packages(exclude=["tests"]),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=["torch", "numpy"],
+    install_requires=["torch", "numpy", "dataclasses"],
     license="MIT",
 )

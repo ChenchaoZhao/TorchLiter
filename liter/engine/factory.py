@@ -2,13 +2,13 @@ import inspect
 from functools import partial
 from typing import *
 
-from .base import EngineBase
 from .buffer import *
+from .events import Engine
 
 __all__ = ["Automated"]
 
 
-class Automated(EngineBase):
+class Automated(Engine):
     """
     Automated Engine Given a forward generator function, `from_forward` will
     return an Automated engine class.
