@@ -1,7 +1,9 @@
+import inspect
 from enum import Enum
 from functools import partial
 from typing import *
 
+from .. import REPR_INDENT
 from .base import EngineBase
 
 __all__ = [
@@ -54,6 +56,20 @@ class EventHandler:
     def __call__(self, *args, **kwargs):
         if self.trigger(*args, **kwargs):
             self.action(*args, **kwargs)
+
+    def __repr__(self):
+        lines = []
+        lines.append(self.__class__.__name__)
+        lines.append(REPR_INDENT + "trigger function:")
+        if self.trigger_function:
+            for ln in inspect.getsource(self.trigger_function).split("\n"):
+                lines.append(REPR_INDENT * 2 + ln)
+        lines.append(REPR_INDENT + "action function:")
+        if self.action_function:
+            for ln in inspect.getsource(self.action_function).split("\n"):
+                lines.append(REPR_INDENT * 2 + ln)
+
+        return "\n".join(lines)
 
     @classmethod
     def config(cls, *args, **kwargs):
