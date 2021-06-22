@@ -1,4 +1,4 @@
-from liter.events import *
+from liter.engine.events import *
 
 
 class MockEngine:

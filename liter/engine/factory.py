@@ -2,8 +2,8 @@ import inspect
 from functools import partial
 from typing import *
 
-from .base import Engine
 from .buffer import *
+from .events import Engine
 
 __all__ = ["Automated"]
 

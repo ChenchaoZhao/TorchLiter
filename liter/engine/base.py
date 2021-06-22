@@ -3,12 +3,11 @@ import warnings
 from typing import *
 
 from .. import REPR_INDENT
-from ..events import *
 from ..exception import BreakIteration, ContinueIteration
 from ..stub import StubBase
 from .component_types import *
 
-__all__ = ["Engine", "EngineBase"]
+__all__ = ["EngineBase"]
 
 
 class EngineBase:
@@ -272,36 +271,3 @@ class EngineBase:
                 out.append(" " * 2 * REPR_INDENT + f"{k}")
 
         return "\n".join(out)
-
-
-class Engine(EngineBase):
-    """Engine with Event Handler plugin."""
-
-    _event_handlers: Dict[EventCategory, List[EventHandler]] = {
-        EventCategory.EPOCH_STARTS: [],
-        EventCategory.EPOCH_FINISHES: [],
-        EventCategory.BEFORE_ITERATION: [],
-        EventCategory.AFTER_ITERATION: [],
-    }
-
-    def attach_event(self, handler: EventHandler):
-        if handler.category:
-            self._event_handlers[handler.category].append(handler)
-        else:
-            raise TypeError("Category of handler must be specified.")
-
-    def when_epoch_starts(self):
-        for h in self._event_handlers[EventCategory.EPOCH_STARTS]:
-            h(self)
-
-    def when_epoch_finishes(self):
-        for h in self._event_handlers[EventCategory.EPOCH_FINISHES]:
-            h(self)
-
-    def before_iteration(self):
-        for h in self._event_handlers[EventCategory.BEFORE_ITERATION]:
-            h(self)
-
-    def after_iteration(self):
-        for h in self._event_handlers[EventCategory.AFTER_ITERATION]:
-            h(self)

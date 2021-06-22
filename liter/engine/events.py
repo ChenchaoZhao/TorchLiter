@@ -2,7 +2,7 @@ from enum import Enum
 from functools import partial
 from typing import *
 
-Engine = TypeVar("Engine")
+from .base import EngineBase
 
 __all__ = [
     "EventCategory",
@@ -29,14 +29,14 @@ class EventHandler:
 
     def __init__(
         self,
-        action_function: Optional[Callable[[Engine], None]] = None,
-        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        action_function: Optional[Callable[[EngineBase], None]] = None,
+        trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         **kwargs
     ):
         self.action_function = action_function
         self.trigger_function = trigger_function
 
-    def trigger(self, engine: Engine) -> bool:
+    def trigger(self, engine: EngineBase) -> bool:
         if self.trigger_function is None:
             return True
 
@@ -78,8 +78,8 @@ class PreEpochHandler(EventHandler):
 
     def __init__(
         self,
-        action_function: Callable[[Engine], None],
-        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        action_function: Callable[[EngineBase], None],
+        trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
     ):
         if trigger_function is None:
@@ -94,8 +94,8 @@ class PostEpochHandler(EventHandler):
 
     def __init__(
         self,
-        action_function: Callable[[Engine], None],
-        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        action_function: Callable[[EngineBase], None],
+        trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
     ):
         if trigger_function is None:
@@ -110,8 +110,8 @@ class PreIterationHandler(EventHandler):
 
     def __init__(
         self,
-        action_function: Callable[[Engine], None],
-        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        action_function: Callable[[EngineBase], None],
+        trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
     ):
         if trigger_function is None:
@@ -126,10 +126,43 @@ class PostIterationHandler(EventHandler):
 
     def __init__(
         self,
-        action_function: Callable[[Engine], None],
-        trigger_function: Optional[Callable[[Engine], bool]] = None,
+        action_function: Callable[[EngineBase], None],
+        trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
     ):
         if trigger_function is None:
             trigger_function = lambda engine: engine.iteration % every == 0  # noqa
         super().__init__(action_function, trigger_function)
+
+
+class Engine(EngineBase):
+    """Engine with Event Handler plugin."""
+
+    _event_handlers: Dict[EventCategory, List[EventHandler]] = {
+        EventCategory.EPOCH_STARTS: [],
+        EventCategory.EPOCH_FINISHES: [],
+        EventCategory.BEFORE_ITERATION: [],
+        EventCategory.AFTER_ITERATION: [],
+    }
+
+    def attach_event(self, handler: EventHandler):
+        if isinstance(handler, EventHandler) and handler.category:
+            self._event_handlers[handler.category].append(handler)
+        else:
+            raise TypeError("Category of handler must be specified.")
+
+    def when_epoch_starts(self):
+        for h in self._event_handlers[EventCategory.EPOCH_STARTS]:
+            h(self)
+
+    def when_epoch_finishes(self):
+        for h in self._event_handlers[EventCategory.EPOCH_FINISHES]:
+            h(self)
+
+    def before_iteration(self):
+        for h in self._event_handlers[EventCategory.BEFORE_ITERATION]:
+            h(self)
+
+    def after_iteration(self):
+        for h in self._event_handlers[EventCategory.AFTER_ITERATION]:
+            h(self)
