@@ -18,6 +18,8 @@ def test_pre_epoch_handlers():
     def every_epoch(engine):
         engine.iteration += 1
 
+    print(every_epoch)
+
     assert isinstance(every_epoch, PreEpochHandler)
 
     for _ in range(10):
@@ -31,6 +33,8 @@ def test_pre_epoch_handlers():
     @PreEpochHandler.config(every=2)
     def every_other_epoch(engine):
         engine.iteration += 1
+
+    print(every_other_epoch)
 
     assert isinstance(every_other_epoch, PreEpochHandler)
 

@@ -60,11 +60,11 @@ class EventHandler:
     def __repr__(self):
         lines = []
         lines.append(self.__class__.__name__)
-        lines.append(REPR_INDENT + "trigger function:")
+        lines.append(" " * REPR_INDENT + "trigger function:")
         if self.trigger_function:
             for ln in inspect.getsource(self.trigger_function).split("\n"):
                 lines.append(" " * REPR_INDENT * 2 + ln)
-        lines.append(REPR_INDENT + "action function:")
+        lines.append(" " * REPR_INDENT + "action function:")
         if self.action_function:
             for ln in inspect.getsource(self.action_function).split("\n"):
                 lines.append(" " * REPR_INDENT * 2 + ln)
