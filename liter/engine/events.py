@@ -63,11 +63,11 @@ class EventHandler:
         lines.append(REPR_INDENT + "trigger function:")
         if self.trigger_function:
             for ln in inspect.getsource(self.trigger_function).split("\n"):
-                lines.append(REPR_INDENT * 2 + ln)
+                lines.append(" " * REPR_INDENT * 2 + ln)
         lines.append(REPR_INDENT + "action function:")
         if self.action_function:
             for ln in inspect.getsource(self.action_function).split("\n"):
-                lines.append(REPR_INDENT * 2 + ln)
+                lines.append(" " * REPR_INDENT * 2 + ln)
 
         return "\n".join(lines)
 

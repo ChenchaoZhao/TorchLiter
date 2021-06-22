@@ -1,14 +1,13 @@
+from dataclasses import dataclass
+
 from liter.engine.events import *
 
 
+@dataclass
 class MockEngine:
 
-    epoch: int
-    iteration: int
-
-    def __init__(self, epoch=0, iteration=0):
-        self.epoch = epoch
-        self.iteration = iteration
+    epoch: int = 0
+    iteration: int = 0
 
 
 def test_pre_epoch_handlers():
