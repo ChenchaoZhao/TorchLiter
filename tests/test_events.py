@@ -153,3 +153,19 @@ def test_pre_iteration_handlers():
         ng.iteration += 1
 
     assert ng.epoch == 5
+
+
+def test_engine():
+
+    ng = Engine()
+
+    @ng.attach_event
+    @PreIterationHandler.config(
+        trigger_function=lambda g: (g.iteration ** 2 % 5 == 0) and (g.iteration < 10)
+    )
+    def lambda_iter(engine):
+        engine.epoch = engine.iteration
+
+    assert len(ng.list_events("before_iteration")) == 1 and isinstance(
+        ng.list_events("before_iteration")[0], PreIterationHandler
+    )

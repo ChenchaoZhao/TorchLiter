@@ -155,12 +155,16 @@ class PostIterationHandler(EventHandler):
 class Engine(EngineBase):
     """Engine with Event Handler plugin."""
 
-    _event_handlers: Dict[EventCategory, List[EventHandler]] = {
-        EventCategory.EPOCH_STARTS: [],
-        EventCategory.EPOCH_FINISHES: [],
-        EventCategory.BEFORE_ITERATION: [],
-        EventCategory.AFTER_ITERATION: [],
-    }
+    _event_handlers: Dict[EventCategory, List[EventHandler]]
+
+    def __init__(self):
+        super().__init__()
+        self._event_handlers = {
+            EventCategory.EPOCH_STARTS: [],
+            EventCategory.EPOCH_FINISHES: [],
+            EventCategory.BEFORE_ITERATION: [],
+            EventCategory.AFTER_ITERATION: [],
+        }
 
     def attach_event(self, handler: EventHandler):
         if isinstance(handler, EventHandler) and handler.category:
@@ -168,8 +172,12 @@ class Engine(EngineBase):
         else:
             raise TypeError("Category of handler must be specified.")
 
-    def list_events(self):
-        return self._event_handlers
+    def list_events(self, event_category: Optional[str] = None):
+        return (
+            self._event_handlers[EventCategory(event_category)]
+            if event_category
+            else self._event_handlers
+        )
 
     def when_epoch_starts(self):
         for h in self._event_handlers[EventCategory.EPOCH_STARTS]:
