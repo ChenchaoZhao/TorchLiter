@@ -1,6 +1,6 @@
 import copy
 import importlib
-from typing import *
+from typing import Dict
 
 __all__ = [
     "get_object_from_module",

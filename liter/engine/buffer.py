@@ -1,6 +1,6 @@
 import collections
 from functools import wraps
-from typing import *
+from typing import Any, Optional, Union
 
 import numpy as np
 import torch

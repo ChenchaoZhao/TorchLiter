@@ -1,8 +1,8 @@
 import inspect
 from functools import partial
-from typing import *
+from typing import Callable
 
-from .buffer import *
+from .buffer import BufferBase, ExponentialMovingAverage, to_buffer
 from .events import Engine
 
 __all__ = ["Automated"]

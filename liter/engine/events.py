@@ -1,7 +1,7 @@
 import inspect
 from enum import Enum
 from functools import partial
-from typing import *
+from typing import Callable, Dict, List, Optional
 
 from .. import REPR_INDENT
 from .base import EngineBase
