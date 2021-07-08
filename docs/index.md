@@ -30,7 +30,7 @@
 - [`events.PostIterationHandler`](./liter.engine.events.md#class-postiterationhandler): Handles events after each iteration.
 - [`events.PreEpochHandler`](./liter.engine.events.md#class-preepochhandler): Hanldes events when a new epoch starts.
 - [`events.PreIterationHandler`](./liter.engine.events.md#class-preiterationhandler): Handles events before each iteration.
-- [`factory.Automated`](./liter.engine.factory.md#class-automated): Automated Engine Given a forward generator function, `from_forward` will
+- [`factory.Automated`](./liter.engine.factory.md#class-automated): Automated Engine
 - [`exception.BadBatchError`](./liter.exception.md#class-badbatcherror): Use case:
 - [`exception.BreakIteration`](./liter.exception.md#class-breakiteration)
 - [`exception.ContinueIteration`](./liter.exception.md#class-continueiteration)

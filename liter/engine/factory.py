@@ -10,12 +10,12 @@ __all__ = ["Automated"]
 
 class Automated(Engine):
     """
-    Automated Engine Given a forward generator function, `from_forward` will
-    return an Automated engine class.
+    Automated Engine Given a core generator, the decorator will return an
+    Automated engine class.
 
     For example
     ==================
-
+    ```python
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
@@ -35,13 +35,9 @@ class Automated(Engine):
         acc = (lgs.max(-1).indices == y).float().mean()
 
         yield "acc", acc.item()
-
-    # or alternatively
-    # `from_forward` will be deprecated
-    classification = Automated.from_forward(classification)
-
-    # attach other components such as model, optimizer, dataloader, etc.
-    eng.attach(model=nn.Linear(2, 2))
+    ```
+    attach other components such as model, optimizer, dataloader, etc.
+    `eng.attach(model=nn.Linear(2, 2))`
     ...
     """
 

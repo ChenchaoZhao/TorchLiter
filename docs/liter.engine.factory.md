@@ -10,25 +10,29 @@
 ---
 
 ## <kbd>class</kbd> `Automated`
-Automated Engine Given a forward generator function, `from_forward` will return an Automated engine class. 
+Automated Engine Given a core generator, the decorator will return an Automated engine class. 
 
-For example ================== 
+For example ================== ```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-import torch import torch.nn as nn import torch.nn.functional as F 
+@Automated.config(smooth_window=100)
+def classification(engine, batch):
+     # the first arg must be a place holder for engine class
 
-@Automated.config(smooth_window=100) def classification(engine, batch):  # the first arg must be a place holder for engine class 
+     engine.train()
+     x, y = batch
+     lgs = engine.model(x)
+     loss = F.cross_entropy(lgs, y)
 
- engine.train()  x, y = batch  lgs = engine.model(x)  loss = F.cross_entropy(lgs, y) 
+     yield "loss", loss.item()
+     # metrics will be registered as buffers
 
- yield "loss", loss.item()  # metrics will be registered as buffers 
+     acc = (lgs.max(-1).indices == y).float().mean()
 
- acc = (lgs.max(-1).indices == y).float().mean() 
-
- yield "acc", acc.item() 
-
-# or alternatively # `from_forward` will be deprecated classification = Automated.from_forward(classification) 
-
-# attach other components such as model, optimizer, dataloader, etc. eng.attach(model=nn.Linear(2, 2)) ... 
+     yield "acc", acc.item()
+``` attach other components such as model, optimizer, dataloader, etc. `eng.attach(model=nn.Linear(2, 2))` ... 
 
 ### <kbd>method</kbd> `Automated.__init__`
 
