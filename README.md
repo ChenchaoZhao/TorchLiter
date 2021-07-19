@@ -8,3 +8,5 @@ A freely customizable and truly lightweight training tool for any pytorch projec
 ```
 pip install torchliter
 ```
+## Documentation
+[TorchLiter Docs](https://chenchaozhao.github.io/TorchLiter/)
