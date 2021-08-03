@@ -107,7 +107,7 @@ class PreEpochHandler(EventHandler):
 class PostEpochHandler(EventHandler):
     """Hanldes events when a new epoch finishes."""
 
-    category = EventCategory.EPOCH_STARTS
+    category = EventCategory.EPOCH_FINISHES
 
     def __init__(
         self,
