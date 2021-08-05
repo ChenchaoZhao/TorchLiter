@@ -1,3 +1,5 @@
+from typing import *
+
 from . import REPR_INDENT
 
 __all__ = ["StubBase", "Train", "Evaluate", "Lambda"]
@@ -21,7 +23,22 @@ class StubBase:
             copies.append(self.__class__(**kwargs))
         return copies
 
-    def __call__(self, copy: int = 1):
+    def __call__(self, copy: int = 1) -> Optional[List["StubBase"]]:
+        """
+        Call method.
+
+        Parameters
+        ----------
+        copy : int
+            The number of copies of `Stub` (the default is 1).
+
+        Returns
+        -------
+        Optional[List["StubBase"]]
+            If copy is 0 return None
+            If copy > 0, return a list of `StubBase`
+        """
+
         if copy > 0:
             return self.replicate(copy)
         else:
