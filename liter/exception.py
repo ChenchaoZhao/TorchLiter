@@ -1,29 +1,47 @@
-"""TorchLiter Exceptions."""
+"""Exceptions used by the `Engine` class."""
 
 
 class BreakIteration(Exception):
-    def __init__(self, shutdown_engine=False):
+    """
+    BreakIteration Exception.
+
+    Parameters
+    ----------
+    shutdown_engine : bool
+        If flag variable `shutdown_engine` (the default is False) is `True`,
+        the `Engine` object will kill both the interation and the epochs
+
+    Attributes
+    ----------
+    shutdown_engine
+    """
+
+    def __init__(self, shutdown_engine: bool = False):
         self.shutdown_engine = shutdown_engine
 
 
 class ContinueIteration(Exception):
-    pass
+    """
+    ContinueIteration Exception.
+
+    When raised, the `Engine` iteration will continue.
+    """
 
 
 class BadBatchError(ContinueIteration):
     """
-    Use case:
+    BadBatchError Exception, subclass of ContinueIteration.
 
-    current batch of data is corrupted, skip current batch and fetch a new batch
-    and then continue.
+    If current batch of data is corrupted, skip current batch and fetch a new
+    batch and then continue.
     """
 
 
 class StopEngine(BreakIteration):
     """
-    Use case:
+    StopEngine Exception, subclass of BreakIteration.
 
-    when raised at batch iteration level, if `shutdown_engine=True` then reraise
+    When raised at batch iteration level, if `shutdown_engine=True` then reraise
     BreakIteration to terminate engine.
     """
 
@@ -32,12 +50,12 @@ class StopEngine(BreakIteration):
 
 
 class GradientExplosionError(StopEngine):
-    pass
+    """GradientExplosionError, subclass of StopEngine."""
 
 
 class FoundNanError(StopEngine):
-    pass
+    """FoundNanError, subclass of StopEngine."""
 
 
 class EarlyStopping(StopEngine):
-    pass
+    """EarlyStopping, subclass of StopEngine."""
