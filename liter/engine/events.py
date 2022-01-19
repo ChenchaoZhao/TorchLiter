@@ -1,7 +1,7 @@
 import inspect
 from enum import Enum
 from functools import partial
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from .. import REPR_INDENT
 from .base import EngineBase
@@ -153,7 +153,14 @@ class PostIterationHandler(EventHandler):
 
 
 class Engine(EngineBase):
-    """Engine with Event Handler plugin."""
+    """
+    Engine with Event Handler plugin.
+
+    Attributes
+    ----------
+    _event_handlers : Dict[EventCategory, List[EventHandler]]
+        The registry of event handlers.
+    """
 
     _event_handlers: Dict[EventCategory, List[EventHandler]]
 
@@ -167,12 +174,34 @@ class Engine(EngineBase):
         }
 
     def attach_event(self, handler: EventHandler):
+        """
+        Attach an event handler.
+
+        Parameters
+        ----------
+        handler : EventHandler
+            An event handler to be attached.
+        """
         if isinstance(handler, EventHandler) and handler.category:
             self._event_handlers[handler.category].append(handler)
         else:
             raise TypeError("Category of handler must be specified.")
 
-    def list_events(self, event_category: Optional[str] = None):
+    def list_events(self, event_category: Optional[str] = None) -> Tuple[EventHandler]:
+        """
+        List events based on category.
+
+        Parameters
+        ----------
+        event_category : Optional[str]
+            List event handlers in `event_category` (the default is None).
+            If not provided, list all handlers.
+
+        Returns
+        -------
+        Tuple[EventHandler]
+            Tuple of handlers.
+        """
         return (
             self._event_handlers[EventCategory(event_category)]
             if event_category
