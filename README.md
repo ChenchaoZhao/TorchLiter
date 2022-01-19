@@ -9,4 +9,29 @@ A freely customizable and truly lightweight training tool for any pytorch projec
 pip install torchliter
 ```
 ## Documentation
-[TorchLiter Docs](https://chenchaozhao.github.io/TorchLiter/)
+TorchLiter full documentation is [here](https://chenchaozhao.github.io/TorchLiter/) where the most important class, `Automated` engine class is described  [here](https://chenchaozhao.github.io/TorchLiter/liter/engine/factory.html).
+
+Example usage:
+
+```python
+import liter
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+@liter.engine.Automated.config(smooth_window=100)
+def classification(engine, batch):
+    # the first arg must be a place holder for engine class
+
+    engine.train()
+    x, y = batch
+    lgs = engine.model(x)
+    loss = F.cross_entropy(lgs, y)
+
+    yield "loss", loss.item()
+    # metrics will be registered as buffers
+
+    acc = (lgs.max(-1).indices == y).float().mean()
+
+    yield "acc", acc.item()
+```
