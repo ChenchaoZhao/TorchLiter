@@ -11,6 +11,26 @@ __all__ = ["EngineBase"]
 
 
 class EngineBase:
+    """
+    Base class of Engine classes.
+
+    Attributes
+    ----------
+    epoch : int
+        Current epoch
+    iteration : int
+        Current interation
+    fractional_epoch: float
+        fractional_epoch = epoch + iteration/epoch_length
+    fractional_iteration : float
+        fractional_iteration = iteration/epoch_length
+    epoch_length : Optional[int]
+        Total number of iterations in an epoch
+    absolute_iterations : int
+        absolute_iterations = epoch_length * epoch + iteration
+    _registry : Tuple[Dict[str, Any]]
+        Registry of engine components.
+    """
 
     epoch: int
     iteration: int
@@ -28,7 +48,12 @@ class EngineBase:
             object.__setattr__(self, name, {})
         self.reset_engine()
 
-    def reset_engine(self):
+    def reset_engine(self) -> None:
+        """
+        Reset engine state.
+
+        epoch -> 0 iteration -> 0 stubs -> []
+        """
         self.epoch = 0
         self.iteration = 0
         self.epoch_length = None
@@ -99,6 +124,14 @@ class EngineBase:
         object.__delattr__(self, name)
 
     def state_dict(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Generate current state of the engine as `Dict`.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Any]]
+            Dict of component state dicts.
+        """
         out = {}
 
         out["engine"] = {"epoch": self.epoch, "iteration": self.iteration}
@@ -114,7 +147,19 @@ class EngineBase:
 
         return out
 
-    def load_state_dict(self, state_dict: Dict[str, Dict[str, Any]]):
+    def load_state_dict(self, state_dict: Dict[str, Dict[str, Any]]) -> None:
+        """
+        Load state into engine.
+
+        Parameters
+        ----------
+        state_dict : Dict[str, Dict[str, Any]]
+            Engine state dict.
+
+        Returns
+        -------
+        None
+        """
 
         if "engine" not in state_dict:
             self.reset_engine()
@@ -225,10 +270,38 @@ class EngineBase:
         self.epoch += 1
         self.when_epoch_finishes(**kwargs)
 
-    def queue(self, stubs: List[StubBase]):
+    def queue(self, stubs: List[StubBase]) -> None:
+        """
+        Add stubs to queue.
+
+        Parameters
+        ----------
+        stubs : List[StubBase]
+            A list of `stubs`.
+
+        Returns
+        -------
+        None
+        """
         self.stubs_in_queue.extend(stubs)
 
-    def execute(self, **kwargs: Any):
+    def execute(self, **kwargs: Any) -> None:
+        """
+        Execute stubs in queue.
+
+        Parameters
+        ----------
+        **kwargs : Any
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        AttributeError
+            No action attached to current stub.
+        """
         while len(self.stubs_in_queue) > 0:
             self.current_stub = self.stubs_in_queue.popleft()
             if self.current_stub.action == "train":
@@ -247,7 +320,26 @@ class EngineBase:
                     continue
             self.stubs_done.append(self.current_stub)
 
-    def __call__(self, stubs: Optional[List[StubBase]] = None, **kwargs: Any):
+    def __call__(self, stubs: Optional[List[StubBase]] = None, **kwargs: Any) -> None:
+        """
+        The call method of the engine.
+
+        Parameters
+        ----------
+        stubs : Optional[List[StubBase]]
+            A Todo list of stubs
+        **kwargs : Any
+            Keyword arguments for the engine
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        KeyboardInterrupt
+            When raised current iteration is written to the current stub.
+        """
         if stubs:
             self.queue(stubs)
         elif len(self.stubs_in_queue) == 0:
