@@ -1,7 +1,5 @@
-import inspect
 from enum import Enum
-from functools import partial
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Type
 
 from .. import REPR_INDENT
 from .base import EngineBase
@@ -62,17 +60,15 @@ class EventHandler:
         lines.append(self.__class__.__name__)
         lines.append(" " * REPR_INDENT + "trigger function:")
         if self.trigger_function:
-            for ln in inspect.getsource(self.trigger_function).split("\n"):
-                lines.append(" " * REPR_INDENT * 2 + ln)
+            lines.append(" " * REPR_INDENT * 2 + self.trigger_function.__name__)
         lines.append(" " * REPR_INDENT + "action function:")
         if self.action_function:
-            for ln in inspect.getsource(self.action_function).split("\n"):
-                lines.append(" " * REPR_INDENT * 2 + ln)
+            lines.append(" " * REPR_INDENT * 2 + self.action_function.__name__)
 
         return "\n".join(lines)
 
     @classmethod
-    def config(cls, *args, **kwargs):
+    def config(cls, *args, **kwargs) -> Type:
         """
         Add additional config kwargs.
 
@@ -85,7 +81,7 @@ class EventHandler:
         """
         if args:
             raise ValueError("Only kwargs are allowed.")
-        return partial(cls, **kwargs)
+        return type(cls.__name__, (cls,), kwargs)
 
 
 class PreEpochHandler(EventHandler):
