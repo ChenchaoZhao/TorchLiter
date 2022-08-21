@@ -8,6 +8,10 @@ from .events import Engine
 __all__ = ["Automated"]
 
 
+class AutoEngine(Engine):
+    pass
+
+
 class Automated(Engine):
     """
     Automated Engine Given a core generator, the decorator will return an

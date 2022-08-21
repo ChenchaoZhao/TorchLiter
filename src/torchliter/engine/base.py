@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .. import REPR_INDENT
 from ..exception import BreakIteration, ContinueIteration
-from ..stub import StubBase
+from ..stub import Lambda, StubBase
 from ._types import COMPONENTS, map_str_to_types, map_types_to_str
 
 __all__ = ["EngineBase"]
@@ -227,6 +227,12 @@ class EngineBase:
     def per_epoch(self, **kwargs):
         """Train model by one epoch."""
 
+        if isinstance(self.current_stub, Lambda):
+
+            # Lambda stub without a dataloader
+            if not hasattr(self.current_stub, "dataloader"):
+                return getattr(self, self.current_stub.action)(**kwargs)
+
         if self.current_stub.dataloader in self.dataloader_registry:
             dataloader = getattr(self, self.current_stub.dataloader)
         else:
@@ -272,7 +278,7 @@ class EngineBase:
 
     def queue(self, stubs: List[StubBase]) -> None:
         """
-        Add stubs to queue.
+        Adds stubs to queue.
 
         Parameters
         ----------
@@ -285,9 +291,13 @@ class EngineBase:
         """
         self.stubs_in_queue.extend(stubs)
 
+    def reset_queue(self) -> None:
+        """Resets stubs queue to empty."""
+        self.stubs_in_queue = collections.deque()
+
     def execute(self, **kwargs: Any) -> None:
         """
-        Execute stubs in queue.
+        Executes stubs in queue.
 
         Parameters
         ----------

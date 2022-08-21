@@ -101,6 +101,7 @@ class Lambda(StubBase):
         ), f"Action should be string type but get type {type(action)}."
 
         assert action != "train", "Please use Train stub for training action."
+        assert action != "evaluate", "Please use Evaluate stub for eval action."
 
         kwargs["action"] = action
         # e.g. save checkpoint, send emails, etc.
