@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from .. import REPR_INDENT
 from ..exception import BreakIteration, ContinueIteration
 from ..stub import StubBase
-from .component_types import COMPONENTS, map_str_to_types, map_types_to_str
+from ._types import COMPONENTS, map_str_to_types, map_types_to_str
 
 __all__ = ["EngineBase"]
 
