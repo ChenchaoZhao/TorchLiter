@@ -1,4 +1,4 @@
-import liter.engine.factory as factory
+import torchliter.engine.factory as factory
 
 
 def test_fine_outputs():

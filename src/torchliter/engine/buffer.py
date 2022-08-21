@@ -105,7 +105,7 @@ class ExponentialMovingAverage(BufferBase):
         delta = x - self.mean
 
         self.mean = self.mean + self.alpha * delta
-        self.variance = (1 - self.alpha) * (self.variance + self.alpha * delta ** 2)
+        self.variance = (1 - self.alpha) * (self.variance + self.alpha * delta**2)
 
         self._count += 1
         self._delta = delta
@@ -120,7 +120,7 @@ class ExponentialMovingAverage(BufferBase):
 
     @property
     def std(self):
-        return self.variance ** 0.5
+        return self.variance**0.5
 
 
 class ScalarSmoother(BufferBase):

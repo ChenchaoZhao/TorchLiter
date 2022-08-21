@@ -1,9 +1,9 @@
 import torch
 
-import liter
+import torchliter
 
 
-class SimpleEngine(liter.engine.EngineBase):
+class SimpleEngine(torchliter.engine.EngineBase):
     def __init__(self):
         super().__init__()
 
@@ -46,7 +46,7 @@ def test_engine_base():
     assert "scheduler" in trainer.scheduler_registry
     assert "gradscaler" in trainer.gradscaler_registry
 
-    trainer(liter.stub.Train("dataloader")(2))
+    trainer(torchliter.stub.Train("dataloader")(2))
 
     assert trainer.epoch == 2
     assert trainer.iteration == 1000 // 10
@@ -77,18 +77,18 @@ def test_automated():
 
         yield "acc", acc.item()
 
-    eng = liter.engine.Automated.from_forward(classification, 100)
+    eng = torchliter.engine.Automated.from_forward(classification, 100)
 
     print(eng)
 
-    assert isinstance(eng, liter.engine.Automated)
+    assert isinstance(eng, torchliter.engine.Automated)
     assert hasattr(eng, "buffer_registry")
     assert "loss" in eng.buffer_registry
     assert "acc" in eng.buffer_registry
-    assert isinstance(eng.loss, liter.engine.buffer.BufferBase)
-    assert isinstance(eng.acc, liter.engine.buffer.BufferBase)
+    assert isinstance(eng.loss, torchliter.engine.buffer.BufferBase)
+    assert isinstance(eng.acc, torchliter.engine.buffer.BufferBase)
 
-    eng = liter.engine.Automated.from_forward(classification)
+    eng = torchliter.engine.Automated.from_forward(classification)
     eng.attach(model=nn.Linear(2, 2))
     assert "model" in eng.model_registry
 

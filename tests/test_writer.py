@@ -1,6 +1,6 @@
 import os
 
-import liter
+import torchliter
 
 
 def test_csv_writer():
@@ -10,7 +10,7 @@ def test_csv_writer():
     except FileNotFoundError:
         pass
 
-    with liter.writer.CSVWriter("tmp.csv", ["a", "b"], delimiter=",") as writer:
+    with torchliter.writer.CSVWriter("tmp.csv", ["a", "b"], delimiter=",") as writer:
         print(writer)
         writer({"a": 0.1, "b": 0.2})
 
@@ -18,7 +18,7 @@ def test_csv_writer():
         string = f.read()
         assert string == "a,b\n0.1,0.2\n"
 
-    with liter.writer.CSVWriter("tmp.csv", ["a", "b"], delimiter=",") as writer:
+    with torchliter.writer.CSVWriter("tmp.csv", ["a", "b"], delimiter=",") as writer:
         writer({"a": 0.1, "b": 0.2})
 
     with open("tmp.csv", "r") as f:

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from liter.engine.events import *
+from torchliter.engine.events import *
 
 
 @dataclass
@@ -49,7 +49,7 @@ def test_pre_epoch_handlers():
     ng = MockEngine()
 
     @PreEpochHandler.config(
-        trigger_function=lambda g: (g.epoch ** 2 % 5 == 0) and (g.epoch < 50)
+        trigger_function=lambda g: (g.epoch**2 % 5 == 0) and (g.epoch < 50)
     )
     def lambda_epoch(engine):
         engine.iteration = engine.epoch
@@ -96,7 +96,7 @@ def test_post_epoch_handlers():
     ng = MockEngine()
 
     @PreEpochHandler.config(
-        trigger_function=lambda g: (g.epoch ** 2 % 5 == 0) and (g.epoch < 10)
+        trigger_function=lambda g: (g.epoch**2 % 5 == 0) and (g.epoch < 10)
     )
     def lambda_epoch(engine):
         engine.iteration = engine.epoch
@@ -143,7 +143,7 @@ def test_pre_iteration_handlers():
     ng = MockEngine()
 
     @PreIterationHandler.config(
-        trigger_function=lambda g: (g.iteration ** 2 % 5 == 0) and (g.iteration < 10)
+        trigger_function=lambda g: (g.iteration**2 % 5 == 0) and (g.iteration < 10)
     )
     def lambda_iter(engine):
         engine.epoch = engine.iteration
@@ -161,7 +161,7 @@ def test_engine():
 
     @ng.attach_event
     @PreIterationHandler.config(
-        trigger_function=lambda g: (g.iteration ** 2 % 5 == 0) and (g.iteration < 10)
+        trigger_function=lambda g: (g.iteration**2 % 5 == 0) and (g.iteration < 10)
     )
     def lambda_iter(engine):
         engine.epoch = engine.iteration

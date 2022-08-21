@@ -1,9 +1,9 @@
-import liter
+import torchliter
 
 
 def test_train_stub():
 
-    train = liter.stub.Train("loader")
+    train = torchliter.stub.Train("loader")
 
     assert train.dataloader == "loader"
 
@@ -16,6 +16,6 @@ def test_train_stub():
 
 def test_stub_duplicate():
 
-    assert liter.stub.StubBase(kw="kw")(0) is None
+    assert torchliter.stub.StubBase(kw="kw")(0) is None
 
-    assert len(liter.stub.StubBase(kw="kw")(10)) == 10
+    assert len(torchliter.stub.StubBase(kw="kw")(10)) == 10
