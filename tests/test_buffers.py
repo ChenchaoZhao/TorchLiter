@@ -7,7 +7,7 @@ import torchliter
 
 def test_scaler_buffer():
 
-    scaler = torchliter.engine.buffer.ScalarSmoother(3)
+    scaler = torchliter.engine.buffers.ScalarSmoother(3)
     print(scaler)
 
     assert scaler.mean == 0.0
@@ -29,7 +29,7 @@ def test_scaler_buffer():
 
     state = pickle.dumps(state)
 
-    new_scaler = torchliter.engine.buffer.ScalarSmoother(3)
+    new_scaler = torchliter.engine.buffers.ScalarSmoother(3)
     new_scaler.load_state_dict(pickle.loads(state))
 
     assert new_scaler._count == 4
@@ -38,8 +38,8 @@ def test_scaler_buffer():
 
 def test_exponential_moving_average_buffer():
 
-    scaler = torchliter.engine.buffer.ExponentialMovingAverage(1 / 3)
-    scaler_ = torchliter.engine.buffer.ExponentialMovingAverage(window_size=3)
+    scaler = torchliter.engine.buffers.ExponentialMovingAverage(1 / 3)
+    scaler_ = torchliter.engine.buffers.ExponentialMovingAverage(window_size=3)
 
     assert scaler.__dict__ == scaler_.__dict__  # init using alpha or window size
 
@@ -60,7 +60,7 @@ def test_exponential_moving_average_buffer():
 
     state = pickle.dumps(state)
 
-    new_scaler = torchliter.engine.buffer.ExponentialMovingAverage(0.1)
+    new_scaler = torchliter.engine.buffers.ExponentialMovingAverage(0.1)
     new_scaler.load_state_dict(pickle.loads(state))
 
     assert new_scaler._count == scaler._count
@@ -69,24 +69,24 @@ def test_exponential_moving_average_buffer():
 
 def test_vector_buffer():
 
-    float_vector = torchliter.engine.buffer.VectorSmoother(
+    float_vector = torchliter.engine.buffers.VectorSmoother(
         0.5, 8, 2.0, normalize=True, device="cpu", dtype=torch.float
     )
     assert float_vector.mean.dtype == torch.float
 
-    long_vector = torchliter.engine.buffer.VectorSmoother(
+    long_vector = torchliter.engine.buffers.VectorSmoother(
         0.5, 8, 2.0, normalize=False, device="cpu", dtype=torch.long
     )
     assert long_vector.mean.dtype == torch.long
 
     if torch.cuda.is_available():
-        float_vector = torchliter.engine.buffer.VectorSmoother(
+        float_vector = torchliter.engine.buffers.VectorSmoother(
             0.5, 8, 2.0, normalize=True, device="cuda:0", dtype=torch.float
         )
         assert float_vector.mean.dtype == torch.float
         assert float_vector.mean.device == torch.device("cuda:0")
 
-    vector = torchliter.engine.buffer.VectorSmoother(0.5, 8, 2.0, normalize=False)
+    vector = torchliter.engine.buffers.VectorSmoother(0.5, 8, 2.0, normalize=False)
     print(vector)
 
     torch.tensor([2.0] * 8).float()
@@ -110,13 +110,15 @@ def test_vector_buffer():
 
     state = pickle.dumps(state)
 
-    new_vector = torchliter.engine.buffer.VectorSmoother(0.5, 8, 2.0)
+    new_vector = torchliter.engine.buffers.VectorSmoother(0.5, 8, 2.0)
     new_vector.load_state_dict(pickle.loads(state))
     assert new_vector._count == 3
     assert (new_vector.mean == 2 * torch.ones(8).float() * 0.5**3).all()
 
     # l1-normalized
-    vector = torchliter.engine.buffer.VectorSmoother(0.5, 8, 2.0, normalize=True, p=1.0)
+    vector = torchliter.engine.buffers.VectorSmoother(
+        0.5, 8, 2.0, normalize=True, p=1.0
+    )
     print(vector)
 
     assert vector.l1_norm == 1.0
@@ -138,7 +140,7 @@ def test_vector_buffer():
 
     state = pickle.dumps(state)
 
-    new_vector = torchliter.engine.buffer.VectorSmoother(
+    new_vector = torchliter.engine.buffers.VectorSmoother(
         0.5, 8, 2.0, normalize=True, p=1.0
     )
     new_vector.load_state_dict(pickle.loads(state))
@@ -146,7 +148,9 @@ def test_vector_buffer():
     assert (new_vector.mean == torch.ones(8).float() / 8).all()
 
     # l2-normalized
-    vector = torchliter.engine.buffer.VectorSmoother(0.5, 8, 2.0, normalize=True, p=2.0)
+    vector = torchliter.engine.buffers.VectorSmoother(
+        0.5, 8, 2.0, normalize=True, p=2.0
+    )
     print(vector)
 
     assert (vector.l1_norm - 8**0.5).abs() < 1e-6  # (1/8)**0.5 * 8
@@ -170,7 +174,7 @@ def test_vector_buffer():
 
     state = pickle.dumps(state)
 
-    new_vector = torchliter.engine.buffer.VectorSmoother(
+    new_vector = torchliter.engine.buffers.VectorSmoother(
         0.5, 8, 2.0, normalize=True, p=2.0
     )
     new_vector.load_state_dict(pickle.loads(state))
@@ -181,10 +185,10 @@ def test_vector_buffer():
 class SimpleClass:
     def __init__(self):
         self.buffer = {
-            f"arg{idx}": torchliter.engine.buffer.ScalarSmoother(5) for idx in range(3)
+            f"arg{idx}": torchliter.engine.buffers.ScalarSmoother(5) for idx in range(3)
         }
 
-    @torchliter.engine.buffer.to_buffer("buffer")
+    @torchliter.engine.buffers.to_buffer("buffer")
     def generator(self):
         for idx in range(5):
             yield f"arg{idx}", idx

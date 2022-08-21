@@ -85,8 +85,8 @@ def test_automated():
     assert hasattr(eng, "buffer_registry")
     assert "loss" in eng.buffer_registry
     assert "acc" in eng.buffer_registry
-    assert isinstance(eng.loss, torchliter.engine.buffer.BufferBase)
-    assert isinstance(eng.acc, torchliter.engine.buffer.BufferBase)
+    assert isinstance(eng.loss, torchliter.engine.buffers.BufferBase)
+    assert isinstance(eng.acc, torchliter.engine.buffers.BufferBase)
 
     eng = torchliter.engine.Automated.from_forward(classification)
     eng.attach(model=nn.Linear(2, 2))

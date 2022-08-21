@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import partial
 from typing import Callable, Dict, List, Optional, Tuple, Type
 
 from .. import REPR_INDENT
@@ -81,7 +82,7 @@ class EventHandler:
         """
         if args:
             raise ValueError("Only kwargs are allowed.")
-        return type(cls.__name__, (cls,), kwargs)
+        return partial(cls, **kwargs)
 
 
 class PreEpochHandler(EventHandler):

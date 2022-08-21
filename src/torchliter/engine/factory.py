@@ -2,7 +2,7 @@ import inspect
 from functools import partial
 from typing import Callable
 
-from .buffer import BufferBase, ExponentialMovingAverage, to_buffer
+from .buffers import BufferBase, ExponentialMovingAverage, to_buffer
 from .events import Engine
 
 __all__ = ["Automated"]
