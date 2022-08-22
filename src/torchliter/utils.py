@@ -100,3 +100,28 @@ def get_progress_bar(itr: int, tot: int, width: int = 25):
     out = "  ".join(out)
 
     return out
+
+
+def _is_py_object_name(name: str) -> bool:
+
+    if not isinstance(name, str):
+        return False
+
+    for c in name:
+        if not (c.isalnum() or c == "_"):
+            return False
+
+    return True
+
+
+def _convert_str_to_py_object_name(name: str) -> str:
+    name = name.strip()
+    if _is_py_object_name(name):
+        return name
+    line = []
+    for c in name:
+        if c.isalnum() or c == "_":
+            line.append(c)
+        else:
+            line.append("_")
+    return "".join(line)

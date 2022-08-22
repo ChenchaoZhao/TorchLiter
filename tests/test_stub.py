@@ -3,15 +3,34 @@ import torchliter
 
 def test_train_stub():
 
-    train = torchliter.stub.Train("loader")
+    s = torchliter.stub.Train("loader")
 
-    assert train.dataloader == "loader"
+    assert s.dataloader == "loader"
 
-    assert "iteration" in train.__dict__
+    assert "iteration" in s.__dict__
 
-    assert train.iteration == 0
+    assert s.iteration == 0
 
-    print(train)
+    print(s)
+
+
+def test_evaluate_stub():
+
+    s = torchliter.stub.Evaluate("loader")
+
+    assert s.dataloader == "loader"
+
+    print(s)
+
+
+def test_lambda_stub():
+
+    s = torchliter.stub.Lambda("_method_name&*")
+
+    assert "action" in s.__dict__
+    assert s.action == "_method_name__"
+
+    print(s)
 
 
 def test_stub_duplicate():
