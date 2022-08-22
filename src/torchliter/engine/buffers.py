@@ -1,6 +1,5 @@
 import collections
-from functools import wraps
-from typing import Any, Callable, Generator, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import torch
@@ -10,56 +9,11 @@ from torch import Tensor
 from . import REPR_INDENT
 
 __all__ = [
-    "to_buffer",
     "BufferBase",
     "ExponentialMovingAverage",
     "ScalarSmoother",
     "VectorSmoother",
 ]
-
-
-def to_buffer(buffer_registry_name="buffer_registry") -> Callable:
-    """
-    Returns a decorator that push the updates to corresponding buffers.
-
-    For example,
-
-    ```
-    @to_buffer('some-buffer-registry'):
-    def some_step_method(self, *args):
-        ...
-        yield 'var1', var1
-        ...
-        yield 'var2', var2
-    ```
-    where `var1` and `var2` are buffer names in `some-buffer-registry`.
-
-
-    Parameters
-    ----------
-    buffer_registry_name : str, optional
-        name of buffer registry, by default "buffer_registry"
-
-    Returns
-    -------
-    Callable
-        A decorator that turns a generator to a method the automatically
-        pushes updates to buffers
-    """
-    # name should be an attribute of the owner class
-
-    def decorator(func: Generator[Tuple[str, Any]]):
-        # func: class method that yields tuple of (key: str, val)
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            buffer_dict = getattr(self, buffer_registry_name)
-            for key, val in func(self, *args, **kwargs):
-                if key in buffer_dict:
-                    buffer_dict[key](val)  # pushing update by `__call__`
-
-        return wrapper
-
-    return decorator
 
 
 class BufferBase:

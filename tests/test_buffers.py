@@ -188,7 +188,7 @@ class SimpleClass:
             f"arg{idx}": torchliter.engine.buffers.ScalarSmoother(5) for idx in range(3)
         }
 
-    @torchliter.engine.buffers.to_buffer("buffer")
+    @torchliter.engine.utils.to_buffer("buffer")
     def generator(self):
         for idx in range(5):
             yield f"arg{idx}", idx

@@ -2,9 +2,9 @@ import inspect
 from functools import partial
 from typing import Callable
 
-from .buffers import BufferBase, ExponentialMovingAverage, to_buffer
+from .buffers import BufferBase, ExponentialMovingAverage
 from .events import Engine
-from .utils import _find_output_names
+from .utils import _find_output_names, to_buffer
 
 __all__ = ["Automated"]
 
