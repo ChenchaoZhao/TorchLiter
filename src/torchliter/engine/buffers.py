@@ -1,6 +1,6 @@
 import collections
 from functools import wraps
-from typing import Any, Callable, Generator, Optional, Union
+from typing import Any, Callable, Generator, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -48,7 +48,7 @@ def to_buffer(buffer_registry_name="buffer_registry") -> Callable:
     """
     # name should be an attribute of the owner class
 
-    def decorator(func: Generator):
+    def decorator(func: Generator[Tuple[str, Any]]):
         # func: class method that yields tuple of (key: str, val)
         @wraps(func)
         def wrapper(self, *args, **kwargs):
