@@ -4,12 +4,9 @@ from typing import Callable
 
 from .buffers import BufferBase, ExponentialMovingAverage, to_buffer
 from .events import Engine
+from .utils import _find_output_names
 
 __all__ = ["Automated"]
-
-
-class AutoEngine(Engine):
-    pass
 
 
 class Automated(Engine):
@@ -58,8 +55,8 @@ class Automated(Engine):
             "with first arg being engine class placeholder."
         )
         super().__init__()
+        buffer_names = _find_output_names(core_function)
         self.core = partial(core_function, self)
-        buffer_names = _find_outputs(core_function)
         self.attach(**{n: buffer_type(alpha, smooth_window) for n in buffer_names})
 
     @classmethod
@@ -99,14 +96,3 @@ class Automated(Engine):
         """
         eng = cls(func, smooth_window=smooth_window, **kwargs)
         return eng
-
-
-def _find_outputs(func):
-    source = inspect.getsource(func)
-    names = []
-    for line in source.splitlines():
-        line = line.strip()
-        if line.startswith("yield"):
-            line = line.replace("yield", "")
-            names.append(line.split(",")[0].strip()[1:-1])
-    return names
