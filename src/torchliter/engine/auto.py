@@ -8,10 +8,6 @@ from .events import Engine, EventHandler
 __all__ = ["AutoEngine"]
 
 
-def no_ops(self, *args, **kwargs):
-    return
-
-
 class AutoEngine(Engine):
     def __init__(self, **kwargs):
         super().__init__()
@@ -46,5 +42,3 @@ class AutoEngine(Engine):
         if eval_step:
             methods_to_attach["eval_step"] = eval_step
         return type(cls_name, (cls,), methods_to_attach)
-
-    build = _create_new_engine_type

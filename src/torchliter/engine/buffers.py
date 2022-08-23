@@ -11,6 +11,7 @@ from . import REPR_INDENT
 __all__ = [
     "BufferBase",
     "ExponentialMovingAverage",
+    "ScalarSummaryStatistics",
     "ScalarSmoother",
     "VectorSmoother",
 ]
@@ -183,7 +184,7 @@ class ScalarSummaryStatistics(_ScalarStatistics):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(max_len=None, **kwargs)
+        super().__init__(maxlen=None, **kwargs)
 
 
 class ScalarSmoother(_ScalarStatistics):

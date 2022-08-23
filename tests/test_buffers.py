@@ -1,3 +1,4 @@
+import inspect
 import pickle
 
 import torch
@@ -195,6 +196,11 @@ class SimpleClass:
 
 
 def test_decorator():
+    def _generator(self):
+        for idx in range(5):
+            yield f"arg{idx}", idx
+
+    assert inspect.isfunction(torchliter.engine.utils.to_buffer("buffer")(_generator))
 
     sc = SimpleClass()
 
