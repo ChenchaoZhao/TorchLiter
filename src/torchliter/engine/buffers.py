@@ -104,19 +104,35 @@ class ExponentialMovingAverage(BufferBase):
         return self.variance**0.5
 
 
-class ScalarSmoother(BufferBase):
-    """Rolling smoothing buffer for scalars."""
+class _ScalarStatistics(BufferBase):
+    """
+    Base class for scalar statistics.
 
-    def __init__(self, window_size: int, **kwargs):
+    The streaming scalars are stored in a queue
+    of certain length (`maxlen`).
+    If `maxlen` is not specified, then the queue
+    is a list of any length.
 
-        window_size = int(window_size)
-        assert window_size > 0, f"window_size should be > 0 but get {window_size}"
+    Available statistics:
+        - mean
+        - median
+        - std
+        - max
+        - min
+    """
 
-        super().__init__(window_size=window_size, **kwargs)
+    def __init__(self, maxlen: Optional[int] = None, **kwargs):
+        if maxlen is not None:
+            assert maxlen > 0, f"max_len should be positive but got {maxlen}"
+            maxlen = max(1, int(maxlen))
+        super().__init__(maxlen=maxlen, **kwargs)
 
     def reset(self):
         self._count = 0
-        self._queue = collections.deque([], maxlen=self.window_size)
+        if self.maxlen is None:
+            self._queue = []
+        else:
+            self._queue = collections.deque([], maxlen=self.maxlen)
 
     def update(self, x: float):
         self._queue.append(x)
@@ -148,6 +164,48 @@ class ScalarSmoother(BufferBase):
     @property
     def min(self):
         return np.min(self._queue) if len(self._queue) > 0 else 0.0
+
+
+class ScalarSummaryStatistics(_ScalarStatistics):
+    """
+    Store the scalars and compute statistics.
+
+     The streaming scalars are stored in a list of
+     any length. This is supposed to use in evals
+     where the length is eval datasets.
+
+    Available statistics:
+        - mean
+        - median
+        - std
+        - max
+        - min
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(max_len=None, **kwargs)
+
+
+class ScalarSmoother(_ScalarStatistics):
+    """
+    Rolling average of a stream of scalars.
+
+    The streaming scalars are stored in a deque
+    of certain length (`maxlen`). The statistics
+    are computed within the current deque.
+
+    Available statistics:
+        - mean
+        - median
+        - std
+        - max
+        - min
+    """
+
+    def __init__(self, window_size: int, **kwargs):
+        window_size = int(window_size)
+        assert window_size > 0, f"window_size should be > 0 but get {window_size}"
+        super().__init__(maxlen=window_size, **kwargs)
 
 
 class VectorSmoother(ExponentialMovingAverage):
