@@ -1,4 +1,5 @@
 import inspect
+import warnings
 from functools import partial
 from typing import Callable
 
@@ -49,6 +50,9 @@ class Automated(Engine):
         buffer_type: BufferBase = ExponentialMovingAverage,
         **kwargs
     ):
+        warnings.warn(
+            "This engine class is deprecated. It will be removed in next release."
+        )
         assert inspect.isgeneratorfunction(core_function), (
             "The forward function must be a generator function "
             "with first arg being engine class placeholder."
