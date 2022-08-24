@@ -58,57 +58,61 @@ class AutoEngine(Engine):
     """
     AutoEngine class.
 
-    Example Usage:
+     Example Usage:
 
-    ```
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-
-
-    cart = Cart()
-
-    cart.train_loader = ...
-    cart.eval_loader = ...
-
-    cart.model = ...
-    cart.optimizer = ...
-    cart.scheduler = ...
-
-    def train_step(cart, train_batch):
-
-        image, target = train_batch
-        pred = cart.model(image)
-        loss = F.cross_entropy(pred, target)
-        cart.optimizer.zero_grad()
-        loss.backward()
-        cart.optimizer.step()
-
-        yield 'cross entropy loss', loss.item()
-
-        acc = (pred.max(-1).indices == target).float().mean().item()
-
-        yield 'train acc', acc
+     ```
+     import torch
+     import torch.nn as nn
+     import torch.nn.functional as F
 
 
-    def eval_step(cart, eval_batch):
+     cart = torchliter.Cart()
+     cart.model = nn.Linear(1, 3)
+     cart.train_loader = torch.utils.data.DataLoader(
+         [i for i in range(100)], batch_size=5
+     )
+     cart.eval_loader = torch.utils.data.DataLoader(
+         [i for i in range(100)], batch_size=5
+     )
+     cart.optimizer = torch.optim.AdamW(
+         cart.model.parameters(), lr=1e-3, weight_decay=1e-5
+     )
 
-        image, target = eval_batch
-        with torch.no_grad():
-            pred = cart.model(image)
-        pred_ind = pred.max(-1)
-        acc = (pred_ind == target).float().mean().item()
+     def train_step(_, batch, **kwargs):
+         image, target = batch
+         logits = _.model(image)
+         loss = F.cross_entropy(logits, target)
+         _.optimizer.zero_grad()
+         loss.backward()
+         _.optimizer.step()
 
-        yield 'test acc', acc
+         yield "cross entropy loss", loss.item()
 
-    train_buffers = AutoEngine.auto_buffers(train_step, ...)
-    eval_buffers = AutoEngine.auto_buffers(eval_step, ...)
-    cart.attach(**train_buffers)
-    cart.attach(**eval_buffers)
-    MyEngine = AutoEngine.build('ClassificationTrainer', train_step, eval_step)
-    trainer = MyEngine(**cart.kwargs)
+         acc = (logits.max(-1).indices == target).float().mean()
 
-    ...
+         yield "train acc", acc.item()
+
+     def eval_step(_, batch, **kwargs):
+         image, target = batch
+         with torch.no_grad():
+             logits = _.model(image)
+         acc = (logits.max(-1).indices == target).float().mean()
+         yield "eval acc", acc.item()
+
+     def hello(_):
+         print("hello")
+
+     train_buffers = torchliter.engine.AutoEngine.auto_buffers(
+         train_step, torchliter.buffers.ExponentialMovingAverage
+     )
+     eval_buffers = torchliter.engine.AutoEngine.auto_buffers(
+         eval_step, torchliter.buffers.ScalarSummaryStatistics
+     )
+     TestEngineClass = torchliter.engine.AutoEngine.build(
+         "TestEngine", train_step, eval_step, print_hello=hello
+     )
+     test_engine = TestEngineClass(**{**cart.kwargs, **train_buffers, **eval_buffers})
+
     ```
     """
 

@@ -195,7 +195,7 @@ def test_auto_engine():
         print("hello")
 
     train_buffers = torchliter.engine.AutoEngine.auto_buffers(
-        train_step, torchliter.engine.buffers.ExponentialMovingAverage, window_size=100
+        train_step, torchliter.engine.buffers.ExponentialMovingAverage
     )
     eval_buffers = torchliter.engine.AutoEngine.auto_buffers(
         eval_step, torchliter.engine.buffers.ScalarSummaryStatistics
