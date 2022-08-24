@@ -41,7 +41,62 @@ class Tray:
 
 
 class AutoEngine(Engine):
-    """AutoEngine class."""
+    """
+    AutoEngine class.
+
+    Example Usage:
+
+    ```
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+
+    tray = Tray()
+
+    tray.train_loader = ...
+    tray.eval_loader = ...
+
+    tray.model = ...
+    tray.optimizer = ...
+    tray.scheduler = ...
+
+    def train_step(tray, train_batch):
+
+        image, target = train_batch
+        pred = tray.model(image)
+        loss = F.cross_entropy(pred, target)
+        tray.optimizer.zero_grad()
+        loss.backward()
+        tray.optimizer.step()
+
+        yield 'cross entropy loss', loss.item()
+
+        acc = (pred.max(-1).indices == target).float().mean().item()
+
+        yield 'train acc', acc
+
+
+    def eval_step(tray, eval_batch):
+
+        image, target = eval_batch
+        with torch.no_grad():
+            pred = tray.model(image)
+        pred_ind = pred.max(-1)
+        acc = (pred_ind == target).float().mean().item()
+
+        yield 'test acc', acc
+
+    train_buffers = AutoEngine.auto_buffers(train_step, ...)
+    eval_buffers = AutoEngine.auto_buffers(eval_step, ...)
+    tray.attach(**train_buffers)
+    tray.attach(**eval_buffers)
+    MyEngine = AutoEngine.build('ClassificationTrainer', train_step, eval_step)
+    trainer = MyEngine(**tray.to_kwargs())
+
+    ...
+    ```
+    """
 
     def __init__(self, **kwargs):
         super().__init__()
