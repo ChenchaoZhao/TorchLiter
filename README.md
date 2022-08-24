@@ -8,10 +8,7 @@ A freely customizable and truly lightweight training tool for any pytorch projec
 ```
 pip install torchliter
 ```
-## Documentation
-TorchLiter full documentation is [here](https://chenchaozhao.github.io/TorchLiter/) where the most important class, `Automated` engine class is described  [here](https://chenchaozhao.github.io/TorchLiter/liter/engine/factory.html).
-
-Example usage:
+## Example Usage:
 
 ```python
 import torchliter
