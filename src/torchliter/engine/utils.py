@@ -75,5 +75,6 @@ def _find_output_names(func: Generator[Tuple[str, Any], None, None]) -> List[str
         line = line.strip()
         if line.startswith("yield"):
             line = line.replace("yield", "")
-            names.append(line.split(",")[0].strip()[1:-1])
+            names.append(line.rsplit(",", 1)[0].strip()[1:-1])
+            # use rsplit because var names can be e.g. "a,b,c"
     return names
