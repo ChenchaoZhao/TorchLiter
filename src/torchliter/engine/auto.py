@@ -16,16 +16,27 @@ class Tray:
     The `Tray` helper object that temporarily stores the engine components and
     attributes.
 
-    Use `to_kwargs` to get the attachments as a kwargs dict
+    - Use `kwargs` to get the attachments as a kwargs dict
+    - Use `attach(**kwargs)` to attach attributes in bulk
     """
 
-    def to_kwargs(self) -> Dict[str, Any]:
+    @property
+    def kwargs(self) -> Dict[str, Any]:
         kwargs = {}
         for var, value in self.__dict__.items():
             if var.startswith("__"):
                 continue
             kwargs[_py_name(var)] = value
         return kwargs
+
+    def attach(self, *args, **kwargs):
+        if args:
+            raise RuntimeError("Only keyword args allowed.")
+        for var, value in kwargs.items():
+            setattr(self, var, value)
+
+    def __len__(self) -> int:
+        return len(self.kwargs)
 
     def __repr__(self) -> str:
         header = ["Tray()"]
@@ -108,14 +119,17 @@ class AutoEngine(Engine):
 
     def per_batch(self, batch: Union[Tuple[Any], Dict[str, Any]], **kwargs: Any):
         if isinstance(self.current_stub, stub.Train):
+            # set to train mode automatically
+            self.train()
             return self.train_step(batch, **kwargs)
         if isinstance(self.current_stub, stub.Evaluate):
+            # set to eval model automatically
+            self.eval()
             return self.eval_step(batch, **kwargs)
         if isinstance(self.current_stub, stub.Lambda):
             return getattr(self, self.current_stub.action)(batch, **kwargs)
 
         warnings.warn(f"Current stub type {type(self.current_stub)} is not recognized.")
-        return
 
     @to_buffer()
     def train_step(self, batch: Any, **kwargs: Any) -> Generator:
