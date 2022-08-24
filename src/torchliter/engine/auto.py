@@ -8,17 +8,20 @@ from .buffers import BufferBase
 from .events import Engine, EventHandler
 from .utils import _find_output_names, to_buffer
 
-__all__ = ["AutoEngine"]
+__all__ = ["AutoEngine", "Cart"]
 
 
-class Tray:
+class Cart:
     """
-    The `Tray` helper object that temporarily stores the engine components and
+    The `Cart` helper object that temporarily stores the engine components and
     attributes.
 
     - Use `kwargs` to get the attachments as a kwargs dict
     - Use `attach(**kwargs)` to attach attributes in bulk
     """
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        self.attach(*args, **kwargs)
 
     @property
     def kwargs(self) -> Dict[str, Any]:
@@ -39,7 +42,7 @@ class Tray:
         return len(self.kwargs)
 
     def __repr__(self) -> str:
-        header = ["Tray()"]
+        header = [self.__class__.__name__]
         body = []
         for var, value in self.__dict__.items():
             if var.startswith("__"):
@@ -63,23 +66,23 @@ class AutoEngine(Engine):
     import torch.nn.functional as F
 
 
-    tray = Tray()
+    cart = Cart()
 
-    tray.train_loader = ...
-    tray.eval_loader = ...
+    cart.train_loader = ...
+    cart.eval_loader = ...
 
-    tray.model = ...
-    tray.optimizer = ...
-    tray.scheduler = ...
+    cart.model = ...
+    cart.optimizer = ...
+    cart.scheduler = ...
 
-    def train_step(tray, train_batch):
+    def train_step(cart, train_batch):
 
         image, target = train_batch
-        pred = tray.model(image)
+        pred = cart.model(image)
         loss = F.cross_entropy(pred, target)
-        tray.optimizer.zero_grad()
+        cart.optimizer.zero_grad()
         loss.backward()
-        tray.optimizer.step()
+        cart.optimizer.step()
 
         yield 'cross entropy loss', loss.item()
 
@@ -88,11 +91,11 @@ class AutoEngine(Engine):
         yield 'train acc', acc
 
 
-    def eval_step(tray, eval_batch):
+    def eval_step(cart, eval_batch):
 
         image, target = eval_batch
         with torch.no_grad():
-            pred = tray.model(image)
+            pred = cart.model(image)
         pred_ind = pred.max(-1)
         acc = (pred_ind == target).float().mean().item()
 
@@ -100,10 +103,10 @@ class AutoEngine(Engine):
 
     train_buffers = AutoEngine.auto_buffers(train_step, ...)
     eval_buffers = AutoEngine.auto_buffers(eval_step, ...)
-    tray.attach(**train_buffers)
-    tray.attach(**eval_buffers)
+    cart.attach(**train_buffers)
+    cart.attach(**eval_buffers)
     MyEngine = AutoEngine.build('ClassificationTrainer', train_step, eval_step)
-    trainer = MyEngine(**tray.to_kwargs())
+    trainer = MyEngine(**cart.kwargs)
 
     ...
     ```
@@ -111,6 +114,11 @@ class AutoEngine(Engine):
 
     def __init__(self, **kwargs):
         super().__init__()
+        self.attach(**kwargs)
+
+    def attach(self, *args, **kwargs):
+        if args:
+            raise RuntimeError("Only keyword args allowed.")
         for k, v in kwargs.items():
             if isinstance(v, EventHandler):
                 self.attach_event(v)
