@@ -125,3 +125,33 @@ def test_cart():
     )
     for var, obj in cart.kwargs.items():
         assert isinstance(obj, _types[var])
+
+
+def test_auto_buffers():
+    def train_step(_, batch):
+        yield "test 1", 1.0
+        yield "test 2", 2.0
+        yield "test 3", 3.0
+
+    dict_of_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        train_step, torchliter.engine.buffers.ExponentialMovingAverage, window_size=314
+    )
+
+    for var in ["test_1", "test_2", "test_3"]:
+        assert var in dict_of_buffers
+        b = dict_of_buffers[var]
+        assert isinstance(b, torchliter.engine.buffers.ExponentialMovingAverage)
+        assert b.alpha == 1.0 / 314.0
+
+    dict_of_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        train_step, torchliter.engine.buffers.ScalarSummaryStatistics
+    )
+    for var in ["test_1", "test_2", "test_3"]:
+        assert var in dict_of_buffers
+        b = dict_of_buffers[var]
+        assert isinstance(b, torchliter.engine.buffers.ScalarSummaryStatistics)
+        assert b.maxlen is None
+
+
+def test_auto_engine():
+    pass
