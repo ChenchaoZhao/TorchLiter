@@ -96,3 +96,32 @@ def test_automated():
 
     assert eng.loss._count == 1
     assert eng.acc._count == 1
+
+
+def test_cart():
+    cart = torchliter.engine.auto.Cart(
+        model=torch.nn.Linear(1, 1),
+        train_loader=torch.utils.data.DataLoader([i for i in range(100)], batch_size=1),
+    )
+
+    assert str(cart)
+    assert str(cart) == repr(cart)
+    cart.attach(
+        eval_loader=torch.utils.data.DataLoader([i for i in range(100)], batch_size=1)
+    )
+    cart.eval_loader2 = torch.utils.data.DataLoader(
+        [i for i in range(100)], batch_size=1
+    )
+    assert cart.eval_loader.__class__ == cart.eval_loader2.__class__
+
+    del cart.eval_loader2
+
+    cart.optimizer = torch.optim.Adam(cart.model.parameters(), lr=0.1)
+    _types = dict(
+        model=torch.nn.Module,
+        train_loader=torch.utils.data.DataLoader,
+        eval_loader=torch.utils.data.DataLoader,
+        optimizer=torch.optim.Optimizer,
+    )
+    for var, obj in cart.kwargs.items():
+        assert isinstance(obj, _types[var])
