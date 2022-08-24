@@ -373,3 +373,5 @@ class EngineBase:
                 out.append(" " * 2 * REPR_INDENT + f"{k}")
 
         return "\n".join(out)
+
+    __str__ = __repr__
