@@ -2,6 +2,8 @@ import inspect
 from functools import wraps
 from typing import Any, Callable, Generator, List, Tuple
 
+from ..utils import _convert_str_to_py_object_name as _py_name
+
 __all__ = ["to_buffer", "_find_output_names"]
 
 
@@ -41,6 +43,7 @@ def to_buffer(buffer_registry_name="buffer_registry") -> Callable:
         def wrapper(self, *args, **kwargs):
             buffer_dict = getattr(self, buffer_registry_name)
             for key, val in func(self, *args, **kwargs):
+                key = _py_name(key)
                 if key in buffer_dict:
                     buffer_dict[key](val)  # pushing update by `__call__`
 
