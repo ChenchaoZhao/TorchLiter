@@ -1,4 +1,8 @@
+import inspect
+
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 import torchliter
 
@@ -136,7 +140,6 @@ def test_auto_buffers():
     dict_of_buffers = torchliter.engine.AutoEngine.auto_buffers(
         train_step, torchliter.engine.buffers.ExponentialMovingAverage, window_size=314
     )
-
     for var in ["test_1", "test_2", "test_3"]:
         assert var in dict_of_buffers
         b = dict_of_buffers[var]
@@ -154,4 +157,74 @@ def test_auto_buffers():
 
 
 def test_auto_engine():
-    pass
+
+    cart = torchliter.engine.auto.Cart()
+    cart.model = nn.Linear(1, 3)
+    cart.train_loader = torch.utils.data.DataLoader(
+        [i for i in range(100)], batch_size=5
+    )
+    cart.eval_loader = torch.utils.data.DataLoader(
+        [i for i in range(100)], batch_size=5
+    )
+    cart.optimizer = torch.optim.AdamW(
+        cart.model.parameters(), lr=1e-3, weight_decay=1e-5
+    )
+
+    def train_step(_, batch, **kwargs):
+        image, target = batch
+        logits = _.model(image)
+        loss = F.cross_entropy(logits, target)
+        _.optimizer.zero_grad()
+        loss.backward()
+        _.optimizer.step()
+
+        yield "cross entropy loss", loss.item()
+
+        acc = (logits.max(-1).indices == target).float().mean()
+
+        yield "train acc", acc.item()
+
+    def eval_step(_, batch, **kwargs):
+        image, target = batch
+        with torch.no_grad():
+            logits = _.model(image)
+        acc = (logits.max(-1).indices == target).float().mean()
+        yield "eval acc", acc.item()
+
+    def hello(_):
+        print("hello")
+
+    train_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        train_step, torchliter.engine.buffers.ExponentialMovingAverage, window_size=100
+    )
+    eval_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        eval_step, torchliter.engine.buffers.ScalarSummaryStatistics
+    )
+    TestEngineClass = torchliter.engine.AutoEngine.build(
+        "TestEngine", train_step, eval_step, print_hello=hello
+    )
+    test_engine = TestEngineClass(**{**cart.kwargs, **train_buffers, **eval_buffers})
+
+    assert isinstance(test_engine, torchliter.engine.AutoEngine)
+
+    assert inspect.ismethod(test_engine.print_hello)
+    assert inspect.ismethod(test_engine.train_step)
+    assert inspect.ismethod(test_engine.eval_step)
+    assert inspect.isgeneratorfunction(test_engine._train_step_generator)
+    assert inspect.isgeneratorfunction(test_engine._eval_step_generator)
+
+    assert isinstance(test_engine.model, nn.Linear)
+    assert isinstance(test_engine.train_loader, torch.utils.data.DataLoader)
+    assert isinstance(test_engine.eval_loader, torch.utils.data.DataLoader)
+    assert isinstance(test_engine.optimizer, torch.optim.Optimizer)
+
+    assert isinstance(
+        test_engine.train_acc, torchliter.engine.buffers.ExponentialMovingAverage
+    )
+    assert isinstance(
+        test_engine.cross_entropy_loss,
+        torchliter.engine.buffers.ExponentialMovingAverage,
+    )
+    assert isinstance(
+        test_engine.eval_acc, torchliter.engine.buffers.ScalarSummaryStatistics
+    )
