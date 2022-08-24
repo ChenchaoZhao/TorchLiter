@@ -45,7 +45,6 @@ class Automated(Engine):
     def __init__(
         self,
         core_function: Callable,
-        alpha: float = 1e-2,
         smooth_window: int = 50,
         buffer_type: BufferBase = ExponentialMovingAverage,
         **kwargs
@@ -57,7 +56,7 @@ class Automated(Engine):
         super().__init__()
         buffer_names = _find_output_names(core_function)
         self.core = partial(core_function, self)
-        self.attach(**{n: buffer_type(alpha, smooth_window) for n in buffer_names})
+        self.attach(**{n: buffer_type(1 / smooth_window) for n in buffer_names})
 
     @classmethod
     def config(cls, **kwargs):

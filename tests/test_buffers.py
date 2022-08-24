@@ -37,14 +37,24 @@ def test_scaler_buffer():
     assert new_scaler.mean == 2.0
 
 
+def test_scalar_summary_statistics():
+
+    b = torchliter.engine.buffers.ScalarSummaryStatistics()
+    b(1.0)
+    b(2.0)
+    b(3.0)
+
+    assert len(b) == 3
+    assert b.median == 2.0
+    assert b.min == 1.0
+    assert b.max == 3.0
+    assert b.mean == 2.0
+    assert b.std == (2 / 3) ** (0.5)
+
+
 def test_exponential_moving_average_buffer():
 
     scaler = torchliter.engine.buffers.ExponentialMovingAverage(1 / 3)
-    scaler_ = torchliter.engine.buffers.ExponentialMovingAverage(window_size=3)
-
-    assert scaler.__dict__ == scaler_.__dict__  # init using alpha or window size
-
-    del scaler_
 
     assert scaler.mean == 0.0
     assert scaler.variance == 0.0

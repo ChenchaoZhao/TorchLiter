@@ -66,15 +66,9 @@ class ExponentialMovingAverage(BufferBase):
 
     def __init__(
         self,
-        alpha: Optional[float] = None,
-        window_size: Optional[int] = None,
+        alpha: float = 0.01,
         **kwargs: Any,
     ):
-        if alpha is None:
-            assert (
-                window_size is not None
-            ), "Init args `alpha` and `window_size` cannot be both `None`."
-            alpha = 1.0 / window_size
         assert 0 <= alpha <= 1, "Value `alpha` should be in [0, 1]."
         super().__init__(alpha=alpha, **kwargs)
 
@@ -185,6 +179,9 @@ class ScalarSummaryStatistics(_ScalarStatistics):
 
     def __init__(self, **kwargs):
         super().__init__(maxlen=None, **kwargs)
+
+    def __len__(self) -> int:
+        return len(self._queue)
 
 
 class ScalarSmoother(_ScalarStatistics):

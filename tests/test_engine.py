@@ -138,7 +138,7 @@ def test_auto_buffers():
         yield "test 3", 3.0
 
     dict_of_buffers = torchliter.engine.AutoEngine.auto_buffers(
-        train_step, torchliter.engine.buffers.ExponentialMovingAverage, window_size=314
+        train_step, torchliter.engine.buffers.ExponentialMovingAverage, alpha=1 / 314
     )
     for var in ["test_1", "test_2", "test_3"]:
         assert var in dict_of_buffers
