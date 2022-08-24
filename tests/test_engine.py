@@ -1,9 +1,13 @@
+import inspect
+
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-import liter
+import torchliter
 
 
-class SimpleEngine(liter.engine.EngineBase):
+class SimpleEngine(torchliter.engine.EngineBase):
     def __init__(self):
         super().__init__()
 
@@ -46,7 +50,7 @@ def test_engine_base():
     assert "scheduler" in trainer.scheduler_registry
     assert "gradscaler" in trainer.gradscaler_registry
 
-    trainer(liter.stub.Train("dataloader")(2))
+    trainer(torchliter.stub.Train("dataloader")(2))
 
     assert trainer.epoch == 2
     assert trainer.iteration == 1000 // 10
@@ -77,18 +81,18 @@ def test_automated():
 
         yield "acc", acc.item()
 
-    eng = liter.engine.Automated.from_forward(classification, 100)
+    eng = torchliter.engine.Automated.from_forward(classification, 100)
 
     print(eng)
 
-    assert isinstance(eng, liter.engine.Automated)
+    assert isinstance(eng, torchliter.engine.Automated)
     assert hasattr(eng, "buffer_registry")
     assert "loss" in eng.buffer_registry
     assert "acc" in eng.buffer_registry
-    assert isinstance(eng.loss, liter.engine.buffer.BufferBase)
-    assert isinstance(eng.acc, liter.engine.buffer.BufferBase)
+    assert isinstance(eng.loss, torchliter.engine.buffers.BufferBase)
+    assert isinstance(eng.acc, torchliter.engine.buffers.BufferBase)
 
-    eng = liter.engine.Automated.from_forward(classification)
+    eng = torchliter.engine.Automated.from_forward(classification)
     eng.attach(model=nn.Linear(2, 2))
     assert "model" in eng.model_registry
 
@@ -96,3 +100,131 @@ def test_automated():
 
     assert eng.loss._count == 1
     assert eng.acc._count == 1
+
+
+def test_cart():
+    cart = torchliter.engine.auto.Cart(
+        model=torch.nn.Linear(1, 1),
+        train_loader=torch.utils.data.DataLoader([i for i in range(100)], batch_size=1),
+    )
+
+    assert str(cart)
+    assert str(cart) == repr(cart)
+    cart.attach(
+        eval_loader=torch.utils.data.DataLoader([i for i in range(100)], batch_size=1)
+    )
+    cart.eval_loader2 = torch.utils.data.DataLoader(
+        [i for i in range(100)], batch_size=1
+    )
+    assert cart.eval_loader.__class__ == cart.eval_loader2.__class__
+
+    del cart.eval_loader2
+
+    cart.optimizer = torch.optim.Adam(cart.model.parameters(), lr=0.1)
+    _types = dict(
+        model=torch.nn.Module,
+        train_loader=torch.utils.data.DataLoader,
+        eval_loader=torch.utils.data.DataLoader,
+        optimizer=torch.optim.Optimizer,
+    )
+    for var, obj in cart.kwargs.items():
+        assert isinstance(obj, _types[var])
+
+
+def test_auto_buffers():
+    def train_step(_, batch):
+        yield "test 1", 1.0
+        yield "test 2", 2.0
+        yield "test 3", 3.0
+
+    dict_of_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        train_step, torchliter.engine.buffers.ExponentialMovingAverage, alpha=1 / 314
+    )
+    for var in ["test_1", "test_2", "test_3"]:
+        assert var in dict_of_buffers
+        b = dict_of_buffers[var]
+        assert isinstance(b, torchliter.engine.buffers.ExponentialMovingAverage)
+        assert b.alpha == 1.0 / 314.0
+
+    dict_of_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        train_step, torchliter.engine.buffers.ScalarSummaryStatistics
+    )
+    for var in ["test_1", "test_2", "test_3"]:
+        assert var in dict_of_buffers
+        b = dict_of_buffers[var]
+        assert isinstance(b, torchliter.engine.buffers.ScalarSummaryStatistics)
+        assert b.maxlen is None
+
+
+def test_auto_engine():
+
+    cart = torchliter.engine.auto.Cart()
+    cart.model = nn.Linear(1, 3)
+    cart.train_loader = torch.utils.data.DataLoader(
+        [i for i in range(100)], batch_size=5
+    )
+    cart.eval_loader = torch.utils.data.DataLoader(
+        [i for i in range(100)], batch_size=5
+    )
+    cart.optimizer = torch.optim.AdamW(
+        cart.model.parameters(), lr=1e-3, weight_decay=1e-5
+    )
+
+    def train_step(_, batch, **kwargs):
+        image, target = batch
+        logits = _.model(image)
+        loss = F.cross_entropy(logits, target)
+        _.optimizer.zero_grad()
+        loss.backward()
+        _.optimizer.step()
+
+        yield "cross entropy loss", loss.item()
+
+        acc = (logits.max(-1).indices == target).float().mean()
+
+        yield "train acc", acc.item()
+
+    def eval_step(_, batch, **kwargs):
+        image, target = batch
+        with torch.no_grad():
+            logits = _.model(image)
+        acc = (logits.max(-1).indices == target).float().mean()
+        yield "eval acc", acc.item()
+
+    def hello(_):
+        print("hello")
+
+    train_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        train_step, torchliter.engine.buffers.ExponentialMovingAverage
+    )
+    eval_buffers = torchliter.engine.AutoEngine.auto_buffers(
+        eval_step, torchliter.engine.buffers.ScalarSummaryStatistics
+    )
+    TestEngineClass = torchliter.engine.AutoEngine.build(
+        "TestEngine", train_step, eval_step, print_hello=hello
+    )
+    test_engine = TestEngineClass(**{**cart.kwargs, **train_buffers, **eval_buffers})
+
+    assert isinstance(test_engine, torchliter.engine.AutoEngine)
+
+    assert inspect.ismethod(test_engine.print_hello)
+    assert inspect.ismethod(test_engine.train_step)
+    assert inspect.ismethod(test_engine.eval_step)
+    assert inspect.isgeneratorfunction(test_engine._train_step_generator)
+    assert inspect.isgeneratorfunction(test_engine._eval_step_generator)
+
+    assert isinstance(test_engine.model, nn.Linear)
+    assert isinstance(test_engine.train_loader, torch.utils.data.DataLoader)
+    assert isinstance(test_engine.eval_loader, torch.utils.data.DataLoader)
+    assert isinstance(test_engine.optimizer, torch.optim.Optimizer)
+
+    assert isinstance(
+        test_engine.train_acc, torchliter.engine.buffers.ExponentialMovingAverage
+    )
+    assert isinstance(
+        test_engine.cross_entropy_loss,
+        torchliter.engine.buffers.ExponentialMovingAverage,
+    )
+    assert isinstance(
+        test_engine.eval_acc, torchliter.engine.buffers.ScalarSummaryStatistics
+    )

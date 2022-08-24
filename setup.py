@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-from liter import __version__
+from src.torchliter import __version__
 
 # load readme
 with open("README.md", "r") as f:
@@ -13,7 +13,8 @@ setup(
     author="Chenchao Zhao",
     author_email="chenchao.zhao@gmail.com",
     description="A lightweight training tool for pytorch projects.",
-    packages=find_packages(exclude=["tests"]),
+    package_dir={"": "src"},
+    packages=find_packages("src", exclude=["tests"]),
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=["torch", "numpy", "dataclasses"],

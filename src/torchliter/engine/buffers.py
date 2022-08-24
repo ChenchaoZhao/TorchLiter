@@ -1,5 +1,4 @@
 import collections
-from functools import wraps
 from typing import Any, Optional, Union
 
 import numpy as np
@@ -10,29 +9,12 @@ from torch import Tensor
 from . import REPR_INDENT
 
 __all__ = [
-    "to_buffer",
     "BufferBase",
     "ExponentialMovingAverage",
+    "ScalarSummaryStatistics",
     "ScalarSmoother",
     "VectorSmoother",
 ]
-
-
-def to_buffer(name="buffer_registry"):
-    # name should be an attribute of the owner class
-
-    def decorator(func):
-        # func: class method that yields tuple of (key: str, val)
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            buffer_dict = getattr(self, name)
-            for key, val in func(self, *args, **kwargs):
-                if key in buffer_dict:
-                    buffer_dict[key](val)  # pushing update by `__call__`
-
-        return wrapper
-
-    return decorator
 
 
 class BufferBase:
@@ -84,15 +66,9 @@ class ExponentialMovingAverage(BufferBase):
 
     def __init__(
         self,
-        alpha: Optional[float] = None,
-        window_size: Optional[int] = None,
+        alpha: float = 0.01,
         **kwargs: Any,
     ):
-        if alpha is None:
-            assert (
-                window_size is not None
-            ), "Init args `alpha` and `window_size` cannot be both `None`."
-            alpha = 1.0 / window_size
         assert 0 <= alpha <= 1, "Value `alpha` should be in [0, 1]."
         super().__init__(alpha=alpha, **kwargs)
 
@@ -105,7 +81,7 @@ class ExponentialMovingAverage(BufferBase):
         delta = x - self.mean
 
         self.mean = self.mean + self.alpha * delta
-        self.variance = (1 - self.alpha) * (self.variance + self.alpha * delta ** 2)
+        self.variance = (1 - self.alpha) * (self.variance + self.alpha * delta**2)
 
         self._count += 1
         self._delta = delta
@@ -120,22 +96,38 @@ class ExponentialMovingAverage(BufferBase):
 
     @property
     def std(self):
-        return self.variance ** 0.5
+        return self.variance**0.5
 
 
-class ScalarSmoother(BufferBase):
-    """Rolling smoothing buffer for scalars."""
+class _ScalarStatistics(BufferBase):
+    """
+    Base class for scalar statistics.
 
-    def __init__(self, window_size: int, **kwargs):
+    The streaming scalars are stored in a queue
+    of certain length (`maxlen`).
+    If `maxlen` is not specified, then the queue
+    is a list of any length.
 
-        window_size = int(window_size)
-        assert window_size > 0, f"window_size should be > 0 but get {window_size}"
+    Available statistics:
+        - mean
+        - median
+        - std
+        - max
+        - min
+    """
 
-        super().__init__(window_size=window_size, **kwargs)
+    def __init__(self, maxlen: Optional[int] = None, **kwargs):
+        if maxlen is not None:
+            assert maxlen > 0, f"max_len should be positive but got {maxlen}"
+            maxlen = max(1, int(maxlen))
+        super().__init__(maxlen=maxlen, **kwargs)
 
     def reset(self):
         self._count = 0
-        self._queue = collections.deque([], maxlen=self.window_size)
+        if self.maxlen is None:
+            self._queue = []
+        else:
+            self._queue = collections.deque([], maxlen=self.maxlen)
 
     def update(self, x: float):
         self._queue.append(x)
@@ -167,6 +159,51 @@ class ScalarSmoother(BufferBase):
     @property
     def min(self):
         return np.min(self._queue) if len(self._queue) > 0 else 0.0
+
+
+class ScalarSummaryStatistics(_ScalarStatistics):
+    """
+    Store the scalars and compute statistics.
+
+     The streaming scalars are stored in a list of
+     any length. This is supposed to use in evals
+     where the length is eval datasets.
+
+    Available statistics:
+        - mean
+        - median
+        - std
+        - max
+        - min
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(maxlen=None, **kwargs)
+
+    def __len__(self) -> int:
+        return len(self._queue)
+
+
+class ScalarSmoother(_ScalarStatistics):
+    """
+    Rolling average of a stream of scalars.
+
+    The streaming scalars are stored in a deque
+    of certain length (`maxlen`). The statistics
+    are computed within the current deque.
+
+    Available statistics:
+        - mean
+        - median
+        - std
+        - max
+        - min
+    """
+
+    def __init__(self, window_size: int, **kwargs):
+        window_size = int(window_size)
+        assert window_size > 0, f"window_size should be > 0 but get {window_size}"
+        super().__init__(maxlen=window_size, **kwargs)
 
 
 class VectorSmoother(ExponentialMovingAverage):

@@ -1,9 +1,11 @@
 import inspect
+import warnings
 from functools import partial
 from typing import Callable
 
-from .buffer import BufferBase, ExponentialMovingAverage, to_buffer
+from .buffers import BufferBase, ExponentialMovingAverage
 from .events import Engine
+from .utils import _find_output_names, to_buffer
 
 __all__ = ["Automated"]
 
@@ -44,19 +46,21 @@ class Automated(Engine):
     def __init__(
         self,
         core_function: Callable,
-        alpha: float = 1e-2,
         smooth_window: int = 50,
         buffer_type: BufferBase = ExponentialMovingAverage,
         **kwargs
     ):
+        warnings.warn(
+            "This engine class is deprecated. It will be removed in next release."
+        )
         assert inspect.isgeneratorfunction(core_function), (
             "The forward function must be a generator function "
             "with first arg being engine class placeholder."
         )
         super().__init__()
+        buffer_names = _find_output_names(core_function)
         self.core = partial(core_function, self)
-        buffer_names = _find_outputs(core_function)
-        self.attach(**{n: buffer_type(alpha, smooth_window) for n in buffer_names})
+        self.attach(**{n: buffer_type(1 / smooth_window) for n in buffer_names})
 
     @classmethod
     def config(cls, **kwargs):
@@ -95,14 +99,3 @@ class Automated(Engine):
         """
         eng = cls(func, smooth_window=smooth_window, **kwargs)
         return eng
-
-
-def _find_outputs(func):
-    source = inspect.getsource(func)
-    names = []
-    for line in source.splitlines():
-        line = line.strip()
-        if line.startswith("yield"):
-            line = line.replace("yield", "")
-            names.append(line.split(",")[0].strip()[1:-1])
-    return names

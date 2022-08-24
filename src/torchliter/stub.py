@@ -1,6 +1,7 @@
 from typing import *
 
 from . import REPR_INDENT
+from .utils import _convert_str_to_py_object_name
 
 __all__ = ["StubBase", "Train", "Evaluate", "Lambda"]
 
@@ -101,8 +102,9 @@ class Lambda(StubBase):
         ), f"Action should be string type but get type {type(action)}."
 
         assert action != "train", "Please use Train stub for training action."
+        assert action != "evaluate", "Please use Evaluate stub for eval action."
 
-        kwargs["action"] = action
+        kwargs["action"] = _convert_str_to_py_object_name(action)
         # e.g. save checkpoint, send emails, etc.
 
         super().__init__(**kwargs)

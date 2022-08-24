@@ -31,5 +31,7 @@ jobs:
           python-version: '3.9'  # for torch installation
       - name: install dependencies
         run: python3 -m pip install -r requirements.txt
+      - name: install latest
+        run: python3 -m pip install -e .
       - name: run tests
         run: python3 -m pytest tests

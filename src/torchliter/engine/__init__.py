@@ -1,5 +1,6 @@
 from .. import REPR_INDENT
+from .auto import *
 from .base import *
-from .buffer import *
+from .buffers import *
 from .events import *
 from .factory import *

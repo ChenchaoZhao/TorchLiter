@@ -8,30 +8,60 @@ A freely customizable and truly lightweight training tool for any pytorch projec
 ```
 pip install torchliter
 ```
-## Documentation
-TorchLiter full documentation is [here](https://chenchaozhao.github.io/TorchLiter/) where the most important class, `Automated` engine class is described  [here](https://chenchaozhao.github.io/TorchLiter/liter/engine/factory.html).
-
-Example usage:
+## Example Usage:
 
 ```python
-import liter
+import torchliter
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-@liter.engine.Automated.config(smooth_window=100)
-def classification(engine, batch):
-    # the first arg must be a place holder for engine class
 
-    engine.train()
-    x, y = batch
-    lgs = engine.model(x)
-    loss = F.cross_entropy(lgs, y)
+cart = torchliter.Cart()
+cart.model = nn.Linear(1, 3)
+cart.train_loader = torch.utils.data.DataLoader(
+    [i for i in range(100)], batch_size=5
+)
+cart.eval_loader = torch.utils.data.DataLoader(
+    [i for i in range(100)], batch_size=5
+)
+cart.optimizer = torch.optim.AdamW(
+    cart.model.parameters(), lr=1e-3, weight_decay=1e-5
+)
 
-    yield "loss", loss.item()
-    # metrics will be registered as buffers
+def train_step(_, batch, **kwargs):
+    image, target = batch
+    logits = _.model(image)
+    loss = F.cross_entropy(logits, target)
+    _.optimizer.zero_grad()
+    loss.backward()
+    _.optimizer.step()
 
-    acc = (lgs.max(-1).indices == y).float().mean()
+    yield "cross entropy loss", loss.item()
 
-    yield "acc", acc.item()
+    acc = (logits.max(-1).indices == target).float().mean()
+
+    yield "train acc", acc.item()
+
+def eval_step(_, batch, **kwargs):
+    image, target = batch
+    with torch.no_grad():
+        logits = _.model(image)
+    acc = (logits.max(-1).indices == target).float().mean()
+    yield "eval acc", acc.item()
+
+def hello(_):
+    print("hello")
+
+train_buffers = torchliter.engine.AutoEngine.auto_buffers(
+    train_step, torchliter.buffers.ExponentialMovingAverage
+)
+eval_buffers = torchliter.engine.AutoEngine.auto_buffers(
+    eval_step, torchliter.buffers.ScalarSummaryStatistics
+)
+TestEngineClass = torchliter.engine.AutoEngine.build(
+    "TestEngine", train_step, eval_step, print_hello=hello
+)
+test_engine = TestEngineClass(**{**cart.kwargs, **train_buffers, **eval_buffers})
+
 ```
