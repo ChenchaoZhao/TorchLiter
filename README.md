@@ -14,6 +14,7 @@ TorchLiter full documentation is [here](https://chenchaozhao.github.io/TorchLite
 Example usage:
 
 ```python
+import torchliter
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
