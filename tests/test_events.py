@@ -13,6 +13,45 @@ class MockEngine:
     is_lambda_stub = False
 
 
+def test_stub_flags():
+
+    ng = MockEngine()
+
+    @PreEpochHandler.config(
+        every=1, train_stub=True, eval_stub=False, lambda_stub=False
+    )
+    def every_epoch(engine):
+        engine.iteration += 1
+
+    print(every_epoch)
+
+    assert isinstance(every_epoch, PreEpochHandler)
+
+    for _ in range(10):
+        every_epoch(ng)
+        ng.epoch += 1
+
+    assert ng.iteration == 10
+
+    ng = MockEngine()
+
+    @PreEpochHandler.config(
+        every=1, train_stub=False, eval_stub=True, lambda_stub=False
+    )
+    def every_epoch(engine):
+        engine.iteration += 1
+
+    print(every_epoch)
+
+    assert isinstance(every_epoch, PreEpochHandler)
+
+    for _ in range(10):
+        every_epoch(ng)
+        ng.epoch += 1
+
+    assert ng.iteration == 0
+
+
 def test_pre_epoch_handlers():
 
     ng = MockEngine()
