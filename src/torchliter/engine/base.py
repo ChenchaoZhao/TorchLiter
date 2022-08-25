@@ -238,12 +238,12 @@ class EngineBase:
 
     def per_epoch(self, **kwargs):
         """
-        Train, eval model or performe an lambda op by one epoch.
+        Train, eval model or performe a lambda op by one epoch.
 
         The stub must at least one dataloader.
         """
 
-        if isinstance(self.current_stub, Lambda):
+        if self.is_lambda_stub:
 
             # Lambda stub without a dataloader
             if not hasattr(self.current_stub, "dataloader"):
@@ -330,7 +330,7 @@ class EngineBase:
         """
         while len(self.stubs_in_queue) > 0:
             self.current_stub = self.stubs_in_queue.popleft()
-            if self.current_stub.action == "train":
+            if hasattr(self.current_stub, "dataloader"):
                 try:
                     self.per_epoch(**kwargs)
                 except BreakIteration:
@@ -338,6 +338,9 @@ class EngineBase:
                 except ContinueIteration:
                     continue
             else:
+                assert not (
+                    self.is_train_stub or self.is_eval_stub
+                ), "Train or Evaluate stubs must have `dataloader`."
                 try:
                     action = getattr(self, self.current_stub.action)
                     action(**kwargs)
