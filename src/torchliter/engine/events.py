@@ -33,7 +33,7 @@ class EventHandler:
         self,
         action_function: Optional[Callable[[EngineBase], None]] = None,
         trigger_function: Optional[Callable[[EngineBase], bool]] = None,
-        **kwargs
+        **kwargs,
     ):
         self.action_function = action_function
         self.trigger_function = trigger_function
@@ -84,6 +84,96 @@ class EventHandler:
             raise ValueError("Only kwargs are allowed.")
         return partial(cls, **kwargs)
 
+    def _default_trigger(
+        self,
+        engine: EngineBase,
+        level: str,
+        every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
+    ) -> bool:
+        """
+        Default trigger function for all `EventHandler`s.
+
+        only trigger when training: train_stub=True, eval_stub=False, lambda_stub=False
+        only trigger when eval: train_stub=False, eval_stub=False, lambda_stub=False
+
+        Parameters
+        ----------
+        engine : EngineBase
+            positional arg for engine
+        level : str
+            either 'epoch' or 'iteration'
+        every : int, optional
+            every 'level', by default 1
+        train_stub : bool, optional
+            trigger event at train stub if True, by default True
+        eval_stub : bool, optional
+            trigger event at eval stub if True, by default True
+        lambda_stub : bool, optional
+            trigger event at lambda stub if True, by default False
+
+        Returns
+        -------
+        bool
+            whether or not trigger the event
+        """
+        if level == "epoch":
+            every_flag = int(engine.epoch) % int(every) == 0
+        elif level == "interation":
+            every_flag = int(engine.iteration) % int(every) == 0
+        else:
+            raise ValueError(f"level can be `epoch` or `iteration` but got `{level}`.")
+
+        if not every_flag:
+            return False
+
+        if not train_stub and engine.is_train_stub:
+            return False
+
+        if not eval_stub and engine.is_eval_stub:
+            return False
+
+        if not lambda_stub and engine.is_lambda_stub:
+            return False
+
+        return True
+
+    def _default_epoch_trigger(
+        self,
+        engine: EngineBase,
+        every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
+    ) -> bool:
+        return self._default_trigger(
+            engine,
+            level="epoch",
+            every=every,
+            train_stub=train_stub,
+            eval_stub=eval_stub,
+            lambda_stub=lambda_stub,
+        )
+
+    def _default_iteration_trigger(
+        self,
+        engine: EngineBase,
+        every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
+    ) -> bool:
+        return self._default_trigger(
+            engine,
+            level="iteration",
+            every=every,
+            train_stub=train_stub,
+            eval_stub=eval_stub,
+            lambda_stub=lambda_stub,
+        )
+
 
 class PreEpochHandler(EventHandler):
     """Hanldes events when a new epoch starts."""
@@ -95,9 +185,17 @@ class PreEpochHandler(EventHandler):
         action_function: Callable[[EngineBase], None],
         trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
     ):
         if trigger_function is None:
-            trigger_function = lambda engine: engine.epoch % every == 0  # noqa
+
+            def trigger_function(engine: EngineBase):
+                return self._default_epoch_trigger(
+                    engine, every, train_stub, eval_stub, lambda_stub
+                )
+
         super().__init__(action_function, trigger_function)
 
 

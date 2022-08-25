@@ -8,6 +8,9 @@ class MockEngine:
 
     epoch: int = 0
     iteration: int = 0
+    is_train_stub = True
+    is_eval_stub = False
+    is_lambda_stub = False
 
 
 def test_pre_epoch_handlers():
