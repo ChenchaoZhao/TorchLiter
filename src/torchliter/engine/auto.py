@@ -2,7 +2,7 @@ import warnings
 from inspect import isfunction, isgeneratorfunction
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
 
-from .. import REPR_INDENT, stub
+from .. import REPR_INDENT
 from ..utils import _convert_str_to_py_object_name as _py_name
 from .buffers import BufferBase
 from .events import Engine, EventHandler
@@ -132,15 +132,15 @@ class AutoEngine(Engine):
                 setattr(self, k, v)
 
     def per_batch(self, batch: Union[Tuple[Any], Dict[str, Any]], **kwargs: Any):
-        if isinstance(self.current_stub, stub.Train):
+        if self.is_train_stub:
             # set to train mode automatically
             self.train()
             return self.train_step(batch, **kwargs)
-        if isinstance(self.current_stub, stub.Evaluate):
+        if self.is_eval_stub:
             # set to eval model automatically
             self.eval()
             return self.eval_step(batch, **kwargs)
-        if isinstance(self.current_stub, stub.Lambda):
+        if self.is_lambda_stub:
             return getattr(self, self.current_stub.action)(batch, **kwargs)
 
         warnings.warn(f"Current stub type {type(self.current_stub)} is not recognized.")
