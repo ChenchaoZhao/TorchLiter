@@ -116,13 +116,15 @@ class AutoEngine(Engine):
     ```
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, *events, **kwargs):
         super().__init__()
         self.attach(**kwargs)
 
-    def attach(self, *args, **kwargs):
-        if args:
-            raise RuntimeError("Only keyword args allowed.")
+    def attach(self, *events, **kwargs):
+        for event in events:
+            if not isinstance(event, EventHandler):
+                raise RuntimeError("Positional args can only be `EventHandler`s.")
+            self.attach_event(event)
         for k, v in kwargs.items():
             if isinstance(v, EventHandler):
                 self.attach_event(v)
