@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
 
 from .. import REPR_INDENT
 from ..utils import _convert_str_to_py_object_name as _py_name
-from .buffers import BufferBase
+from .buffers import BufferBase, ExponentialMovingAverage, ScalarSummaryStatistics
 from .events import Engine, EventHandler
 from .utils import _find_output_names, to_buffer
 
@@ -37,6 +37,24 @@ class Cart:
             raise RuntimeError("Only keyword args allowed.")
         for var, value in kwargs.items():
             setattr(self, var, value)
+
+    def parse_buffers(
+        self,
+        step_function: Generator,
+        mode: Optional[str] = None,
+        buffer_type: Optional[BufferBase] = None,
+        **kwargs,
+    ):
+        if not mode:
+            assert buffer_type, "If mode is None, buffer_type must be specified"
+        elif mode == "train":
+            if not buffer_type:
+                buffer_type = ExponentialMovingAverage
+        elif mode == "eval":
+            if not buffer_type:
+                buffer_type = ScalarSummaryStatistics
+        buffers = AutoEngine.auto_buffers(step_function, buffer_type, **kwargs)
+        self.attach(**buffers)
 
     def __len__(self) -> int:
         return len(self.kwargs)
