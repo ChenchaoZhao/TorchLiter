@@ -118,7 +118,7 @@ class AutoEngine(Engine):
 
     def __init__(self, *events, **kwargs):
         super().__init__()
-        self.attach(**kwargs)
+        self.attach(*events, **kwargs)
 
     def attach(self, *events, **kwargs):
         for event in events:
