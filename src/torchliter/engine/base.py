@@ -240,14 +240,10 @@ class EngineBase:
         """
         Train, eval model or performe a lambda op by one epoch.
 
-        The stub must at least one dataloader.
+        The stub must have `dataloader`.
         """
 
-        if self.is_lambda_stub:
-
-            # Lambda stub without a dataloader
-            if not hasattr(self.current_stub, "dataloader"):
-                return getattr(self, self.current_stub.action)(**kwargs)
+        assert hasattr(self.current_stub, "dataloader")
 
         if self.current_stub.dataloader in self.dataloader_registry:
             dataloader = getattr(self, self.current_stub.dataloader)
@@ -260,19 +256,19 @@ class EngineBase:
         self.when_epoch_starts(**kwargs)
         try:
             # if current stub was paused, then pick up from there
-            it = self.current_stub.iteration
-            it = int(it)
-            self.iteration = it if it > 0 else 0
-        except AttributeError as e:
+            stub_iteration = max(0, int(self.current_stub.iteration))
+            self.iteration = stub_iteration
+        except AttributeError:
             # if stub does not have iteration
-            warnings.warn(f"{e} Iteration reset to zero.")
-            self.iteration = 0
+            self.current_stub.iteration = 0
 
         for batch in dataloader:
             try:
                 self.before_iteration(**kwargs)
                 self.per_batch(batch, **kwargs)  # the iteration
-                self.iteration += 1
+                self.current_stub.iteration += 1
+                if self.is_train_stub:
+                    self.iteration += 1
                 self.after_iteration(**kwargs)
                 if self.iteration == self.epoch_length:
                     # terminate such that total iterations equal epoch length
@@ -289,7 +285,9 @@ class EngineBase:
             except Exception as e:
                 raise e
 
-        self.epoch += 1
+        # update engine epoch only when stub is Train
+        if self.is_train_stub:
+            self.epoch += 1
         self.when_epoch_finishes(**kwargs)
 
     def queue(self, stubs: List[StubBase]) -> None:
