@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .. import REPR_INDENT
 from ..exception import BreakIteration, ContinueIteration
-from ..stub import Lambda, StubBase
+from ..stub import Evaluate, Lambda, StubBase, Train
 from ._types import COMPONENTS, map_str_to_types, map_types_to_str
 
 __all__ = ["EngineBase"]
@@ -224,8 +224,24 @@ class EngineBase:
     def absolute_iterations(self) -> int:
         return self.epoch * self.epoch_length + self.iteration
 
+    @property
+    def is_train_stub(self) -> bool:
+        return isinstance(self.current_stub, Train)
+
+    @property
+    def is_eval_stub(self) -> bool:
+        return isinstance(self.current_stub, Evaluate)
+
+    @property
+    def is_lambda_stub(self) -> bool:
+        return isinstance(self.current_stub, Lambda)
+
     def per_epoch(self, **kwargs):
-        """Train model by one epoch."""
+        """
+        Train, eval model or performe an lambda op by one epoch.
+
+        The stub must at least one dataloader.
+        """
 
         if isinstance(self.current_stub, Lambda):
 
@@ -358,7 +374,9 @@ class EngineBase:
         try:
             self.execute(**kwargs)
         except KeyboardInterrupt:
-            self.current_stub.iteration = self.iteration
+            self.current_stub.iteration = (
+                self.iteration
+            )  # TODO it should always be in sync
             self.stubs_in_queue.appendleft(self.current_stub)
 
     def __repr__(self) -> str:
