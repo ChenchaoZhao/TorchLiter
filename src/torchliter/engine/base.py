@@ -375,9 +375,6 @@ class EngineBase:
         try:
             self.execute(**kwargs)
         except KeyboardInterrupt:
-            self.current_stub.iteration = (
-                self.iteration
-            )  # TODO it should always be in sync
             self.stubs_in_queue.appendleft(self.current_stub)
 
     def __repr__(self) -> str:
