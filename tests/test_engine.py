@@ -155,6 +155,21 @@ def test_auto_buffers():
         assert isinstance(b, torchliter.engine.buffers.ScalarSummaryStatistics)
         assert b.maxlen is None
 
+    # Using Cart.parse_buffers
+    cart = torchliter.engine.auto.Cart()
+    cart.parse_buffers(train_step, mode="train")
+    for var in ["test_1", "test_2", "test_3"]:
+        assert var in cart.kwargs
+        b = cart.kwargs[var]
+        assert isinstance(b, torchliter.engine.buffers.ExponentialMovingAverage)
+
+    cart = torchliter.engine.auto.Cart()
+    cart.parse_buffers(train_step, mode="eval")
+    for var in ["test_1", "test_2", "test_3"]:
+        assert var in cart.kwargs
+        b = cart.kwargs[var]
+        assert isinstance(b, torchliter.engine.buffers.ScalarSummaryStatistics)
+
 
 def test_auto_engine():
 
