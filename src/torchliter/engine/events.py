@@ -121,7 +121,7 @@ class EventHandler:
         """
         if level == "epoch":
             every_flag = int(engine.epoch) % int(every) == 0
-        elif level == "interation":
+        elif level == "iteration":
             every_flag = int(engine.iteration) % int(every) == 0
         else:
             raise ValueError(f"level can be `epoch` or `iteration` but got `{level}`.")
@@ -148,6 +148,30 @@ class EventHandler:
         eval_stub: bool = True,
         lambda_stub: bool = False,
     ) -> bool:
+        """
+        Default trigger function for all epoch level `EventHandler`s.
+
+        only trigger when training: train_stub=True, eval_stub=False, lambda_stub=False
+        only trigger when eval: train_stub=False, eval_stub=False, lambda_stub=False
+
+        Parameters
+        ----------
+        engine : EngineBase
+            positional arg for engine
+        every : int, optional
+            every n epoch, by default 1
+        train_stub : bool, optional
+            trigger event at train stub if True, by default True
+        eval_stub : bool, optional
+            trigger event at eval stub if True, by default True
+        lambda_stub : bool, optional
+            trigger event at lambda stub if True, by default False
+
+        Returns
+        -------
+        bool
+            whether or not trigger the event
+        """
         return self._default_trigger(
             engine,
             level="epoch",
@@ -165,6 +189,30 @@ class EventHandler:
         eval_stub: bool = True,
         lambda_stub: bool = False,
     ) -> bool:
+        """
+        Default trigger function for all iteration level `EventHandler`s.
+
+        only trigger when training: train_stub=True, eval_stub=False, lambda_stub=False
+        only trigger when eval: train_stub=False, eval_stub=False, lambda_stub=False
+
+        Parameters
+        ----------
+        engine : EngineBase
+            positional arg for engine
+        every : int, optional
+            every n iteration, by default 1
+        train_stub : bool, optional
+            trigger event at train stub if True, by default True
+        eval_stub : bool, optional
+            trigger event at eval stub if True, by default True
+        lambda_stub : bool, optional
+            trigger event at lambda stub if True, by default False
+
+        Returns
+        -------
+        bool
+            whether or not trigger the event
+        """
         return self._default_trigger(
             engine,
             level="iteration",
@@ -191,10 +239,12 @@ class PreEpochHandler(EventHandler):
     ):
         if trigger_function is None:
 
-            def trigger_function(engine: EngineBase):
+            def default_trigger(engine: EngineBase):
                 return self._default_epoch_trigger(
                     engine, every, train_stub, eval_stub, lambda_stub
                 )
+
+            trigger_function = default_trigger
 
         super().__init__(action_function, trigger_function)
 
@@ -209,9 +259,19 @@ class PostEpochHandler(EventHandler):
         action_function: Callable[[EngineBase], None],
         trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
     ):
         if trigger_function is None:
-            trigger_function = lambda engine: engine.epoch % every == 0  # noqa
+
+            def default_trigger(engine: EngineBase):
+                return self._default_epoch_trigger(
+                    engine, every, train_stub, eval_stub, lambda_stub
+                )
+
+            trigger_function = default_trigger
+
         super().__init__(action_function, trigger_function)
 
 
@@ -225,9 +285,19 @@ class PreIterationHandler(EventHandler):
         action_function: Callable[[EngineBase], None],
         trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
     ):
         if trigger_function is None:
-            trigger_function = lambda engine: engine.iteration % every == 0  # noqa
+
+            def default_trigger(engine: EngineBase):
+                return self._default_iteration_trigger(
+                    engine, every, train_stub, eval_stub, lambda_stub
+                )
+
+            trigger_function = default_trigger
+
         super().__init__(action_function, trigger_function)
 
 
@@ -241,9 +311,19 @@ class PostIterationHandler(EventHandler):
         action_function: Callable[[EngineBase], None],
         trigger_function: Optional[Callable[[EngineBase], bool]] = None,
         every: int = 1,
+        train_stub: bool = True,
+        eval_stub: bool = True,
+        lambda_stub: bool = False,
     ):
         if trigger_function is None:
-            trigger_function = lambda engine: engine.iteration % every == 0  # noqa
+
+            def default_trigger(engine: EngineBase):
+                return self._default_iteration_trigger(
+                    engine, every, train_stub, eval_stub, lambda_stub
+                )
+
+            trigger_function = default_trigger
+
         super().__init__(action_function, trigger_function)
 
 
