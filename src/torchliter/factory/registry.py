@@ -33,7 +33,7 @@ FACTORY_PRODUCT_REGISTRY: Dict[str, FactoryRecord] = {}
 
 def register_factory(factory_function: Callable) -> Callable:
 
-    assert isinstance(inspect.isfunction(factory_function))
+    assert inspect.isfunction(factory_function)
     _factory_name = ".".join([factory_function.__module__, factory_function.__name__])
     _signature = inspect.signature(factory_function)
 

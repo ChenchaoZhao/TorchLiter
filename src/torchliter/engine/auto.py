@@ -3,6 +3,7 @@ from inspect import isfunction, isgeneratorfunction
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
 
 from .. import REPR_INDENT
+from ..factory import FACTORY_PRODUCT_REGISTRY, FactoryRecord, get_md5_hash
 from ..utils import _convert_str_to_py_object_name as _py_name
 from .buffers import BufferBase, ExponentialMovingAverage, ScalarSummaryStatistics
 from .events import Engine, EventHandler
@@ -20,14 +21,17 @@ class Cart:
     - Use `attach(**kwargs)` to attach attributes in bulk
     """
 
+    attachment_records: Dict[str, FactoryRecord]
+
     def __init__(self, *args: Any, **kwargs: Any):
+        self.attachment_records = {}
         self.attach(*args, **kwargs)
 
     @property
     def kwargs(self) -> Dict[str, Any]:
         kwargs = {}
         for var, value in self.__dict__.items():
-            if var.startswith("__"):
+            if var.startswith("__") or var == "attachment_records":
                 continue
             kwargs[_py_name(var)] = value
         return kwargs
@@ -37,6 +41,18 @@ class Cart:
             raise RuntimeError("Only keyword args allowed.")
         for var, value in kwargs.items():
             setattr(self, var, value)
+
+    def __setattr__(self, name: str, obj: Any) -> None:
+        md5 = get_md5_hash(obj)
+        if md5 in FACTORY_PRODUCT_REGISTRY:
+            record = FACTORY_PRODUCT_REGISTRY[md5]
+            self.attachment_records[name] = record
+        super().__setattr__(name, obj)
+
+    def __delattr__(self, name: str) -> None:
+        super().__delattr__(name)
+        if name in self.attachment_records:
+            self.attachment_records.pop(name)
 
     def parse_buffers(
         self,
