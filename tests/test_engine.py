@@ -61,47 +61,6 @@ def test_engine_base():
     trainer.load_state_dict(state_dict)
 
 
-def test_automated():
-
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-
-    def classification(engine, batch):
-
-        engine.train()
-
-        x, y = batch
-        lgs = engine.model(x)
-        loss = F.cross_entropy(lgs, y)
-
-        yield "loss", loss.item()
-
-        acc = (lgs.max(-1).indices == y).float().mean()
-
-        yield "acc", acc.item()
-
-    eng = torchliter.engine.Automated.from_forward(classification, 100)
-
-    print(eng)
-
-    assert isinstance(eng, torchliter.engine.Automated)
-    assert hasattr(eng, "buffer_registry")
-    assert "loss" in eng.buffer_registry
-    assert "acc" in eng.buffer_registry
-    assert isinstance(eng.loss, torchliter.engine.buffers.BufferBase)
-    assert isinstance(eng.acc, torchliter.engine.buffers.BufferBase)
-
-    eng = torchliter.engine.Automated.from_forward(classification)
-    eng.attach(model=nn.Linear(2, 2))
-    assert "model" in eng.model_registry
-
-    eng.per_batch((torch.randn(3, 2), torch.tensor([1, 0, 1])))
-
-    assert eng.loss._count == 1
-    assert eng.acc._count == 1
-
-
 def test_cart():
     cart = torchliter.engine.auto.Cart(
         model=torch.nn.Linear(1, 1),

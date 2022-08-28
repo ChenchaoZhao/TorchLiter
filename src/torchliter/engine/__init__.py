@@ -3,4 +3,3 @@ from .auto import *
 from .base import *
 from .buffers import *
 from .events import *
-from .factory import *

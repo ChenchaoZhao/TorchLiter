@@ -20,7 +20,8 @@ def test_automated():
 
         yield "loss", 0.0
 
-    eng = torchliter.engine.Automated.from_forward(classification)
+    eng = torchliter.engine.AutoEngine.build("MockEngine", train_step=classification)()
+
     try:
         eng.per_batch((0, 0))
     except torchliter.exception.ContinueIteration as e:
@@ -64,7 +65,6 @@ def test_automated_decorator():
 
     import torch
 
-    @torchliter.engine.Automated
     def classification(engine, batch):
 
         x, y = batch
@@ -80,7 +80,7 @@ def test_automated_decorator():
 
         yield "loss", 0.0
 
-    eng = classification
+    eng = torchliter.engine.AutoEngine.build("MockEngine", train_step=classification)()
     try:
         eng.per_batch((0, 0))
     except torchliter.exception.ContinueIteration as e:
@@ -124,7 +124,6 @@ def test_automated_decorator_config():
 
     import torch
 
-    @torchliter.engine.Automated.config(smooth_window=100)
     def classification(engine, batch):
 
         x, y = batch
@@ -140,7 +139,7 @@ def test_automated_decorator_config():
 
         yield "loss", 0.0
 
-    eng = classification
+    eng = torchliter.engine.AutoEngine.build("MockEngine", train_step=classification)()
     try:
         eng.per_batch((0, 0))
     except torchliter.exception.ContinueIteration as e:
