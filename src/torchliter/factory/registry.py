@@ -5,10 +5,24 @@ from typing import Any, Callable, Dict, NamedTuple
 
 from .utils import get_md5_hash
 
-__all__ = ["FactoryRecord", "FACTORY_FUNCTION_REGISTRY", "FACTORY_PRODUCT_REGISTRY"]
+__all__ = [
+    "FactoryRecord",
+    "FACTORY_FUNCTION_REGISTRY",
+    "FACTORY_PRODUCT_REGISTRY",
+    "register_factory",
+]
 
 
 class FactoryRecord(NamedTuple):
+    """
+    Factory record object.
+
+    Parameters
+    ----------
+    factory_function_name: str
+    input_parameters: Dict[str, Any]
+    """
+
     factory_function_name: str
     input_parameters: Dict[str, Any]
 
@@ -17,7 +31,7 @@ FACTORY_FUNCTION_REGISTRY: Dict[str, inspect.Signature] = {}
 FACTORY_PRODUCT_REGISTRY: Dict[str, FactoryRecord] = {}
 
 
-def register_factory(factory_function: Callable):
+def register_factory(factory_function: Callable) -> Callable:
 
     assert isinstance(inspect.isfunction(factory_function))
     _factory_name = ".".join([factory_function.__module__, factory_function.__name__])
