@@ -11,13 +11,13 @@ pip install torchliter
 ## Example Usage:
 
 ```python
-import torchliter
+import torchliter as lux
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-cart = torchliter.Cart()
+cart = lux.Cart()
 cart.model = nn.Linear(1, 3)
 cart.train_loader = torch.utils.data.DataLoader(
     [i for i in range(100)], batch_size=5
@@ -53,13 +53,13 @@ def eval_step(_, batch, **kwargs):
 def hello(_):
     print("hello")
 
-train_buffers = torchliter.engine.AutoEngine.auto_buffers(
-    train_step, torchliter.buffers.ExponentialMovingAverage
+train_buffers = lux.engine.AutoEngine.auto_buffers(
+    train_step, lux.buffers.ExponentialMovingAverage
 )
-eval_buffers = torchliter.engine.AutoEngine.auto_buffers(
-    eval_step, torchliter.buffers.ScalarSummaryStatistics
+eval_buffers = lux.engine.AutoEngine.auto_buffers(
+    eval_step, lux.buffers.ScalarSummaryStatistics
 )
-TestEngineClass = torchliter.engine.AutoEngine.build(
+TestEngineClass = lux.engine.AutoEngine.build(
     "TestEngine", train_step, eval_step, print_hello=hello
 )
 test_engine = TestEngineClass(**{**cart.kwargs, **train_buffers, **eval_buffers})
