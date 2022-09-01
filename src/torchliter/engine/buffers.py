@@ -1,5 +1,5 @@
 import collections
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -10,6 +10,7 @@ from . import REPR_INDENT
 
 __all__ = [
     "BufferBase",
+    "SequenceContainer",
     "ExponentialMovingAverage",
     "ScalarSummaryStatistics",
     "ScalarSmoother",
@@ -49,6 +50,28 @@ class BufferBase:
                 continue
             out.append(" " * REPR_INDENT + f"{k}: {v}")
         return "\n".join(out)
+
+
+class SequenceContainer(BufferBase):
+    """Sequence container Ingests new values and extends `self.value`"""
+
+    values: List[Any]
+
+    def reset(self):
+        self.values = []
+
+    def update(self, sequence: Union[List, Tuple]):
+        s = list(sequence)
+        self.values.extend(s)
+
+    def state_dict(self):
+        return dict(values=self.values)
+
+    def load_state_dict(self, state_dict):
+        self.values = list(state_dict["values"])
+
+    def __len__(self) -> int:
+        return len(self.values)
 
 
 class ExponentialMovingAverage(BufferBase):

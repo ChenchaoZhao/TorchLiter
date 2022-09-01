@@ -6,6 +6,17 @@ import torch
 import torchliter
 
 
+def test_sequence_container():
+
+    container = torchliter.engine.buffers.SequenceContainer()
+    assert container.values == []
+    for i in range(5):
+        container([i])
+    assert container.values == [i for i in range(5)]
+    container.reset()
+    assert container.values == []
+
+
 def test_scaler_buffer():
 
     scaler = torchliter.engine.buffers.ScalarSmoother(3)
