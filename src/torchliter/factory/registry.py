@@ -3,8 +3,6 @@ import inspect
 import warnings
 from typing import Any, Callable, Dict, NamedTuple
 
-from .utils import get_md5_hash
-
 __all__ = [
     "FactoryRecord",
     "FACTORY_FUNCTION_REGISTRY",
@@ -28,11 +26,10 @@ class FactoryRecord(NamedTuple):
 
 
 FACTORY_FUNCTION_REGISTRY: Dict[str, inspect.Signature] = {}
-FACTORY_PRODUCT_REGISTRY: Dict[str, FactoryRecord] = {}
+FACTORY_PRODUCT_REGISTRY: Dict[int, FactoryRecord] = {}
 
 
 def register_factory(factory_function: Callable) -> Callable:
-
     assert inspect.isfunction(factory_function)
     _factory_name = ".".join([factory_function.__module__, factory_function.__name__])
     _signature = inspect.signature(factory_function)
@@ -57,18 +54,18 @@ def register_factory(factory_function: Callable) -> Callable:
         assert not _args, f"More args than expected {_args[::-1]}."
         assert not kwargs, f"More kwargs than expected {kwargs}."
 
-        results = factory_function(**_kwargs)
+        product = factory_function(**_kwargs)
 
-        if isinstance(results, (list, tuple, set, dict)):
+        if isinstance(product, (list, tuple, set, dict)):
             warnings.warn(
                 f"Return of `{factory_function.__name__}` is a container object. "
                 "If the container object contains distinct components, they should "
                 "be created separately. Otherwise they cannot be tracked correctly."
             )
 
-        hashdigest = get_md5_hash(results)
-        FACTORY_PRODUCT_REGISTRY[hashdigest] = FactoryRecord(_factory_name, _kwargs)
+        memory_address = id(product)
+        FACTORY_PRODUCT_REGISTRY[memory_address] = FactoryRecord(_factory_name, _kwargs)
 
-        return results
+        return product
 
     return auto_logging_factory_function
