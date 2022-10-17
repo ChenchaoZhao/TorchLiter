@@ -3,7 +3,7 @@ from inspect import isfunction, isgeneratorfunction
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union
 
 from .. import REPR_INDENT
-from ..factory import FACTORY_PRODUCT_REGISTRY, FactoryRecord, get_md5_hash
+from ..factory import FACTORY_PRODUCT_REGISTRY, FactoryRecord
 from ..utils import _convert_str_to_py_object_name as _py_name
 from .buffers import BufferBase, ExponentialMovingAverage, ScalarSummaryStatistics
 from .events import Engine, EventHandler
@@ -43,9 +43,9 @@ class Cart:
             setattr(self, var, value)
 
     def __setattr__(self, name: str, obj: Any) -> None:
-        md5 = get_md5_hash(obj)
-        if md5 in FACTORY_PRODUCT_REGISTRY:
-            record = FACTORY_PRODUCT_REGISTRY[md5]
+        _id = id(obj)
+        if _id in FACTORY_PRODUCT_REGISTRY:
+            record = FACTORY_PRODUCT_REGISTRY[_id]
             self.attachment_records[name] = record
         super().__setattr__(name, obj)
 
