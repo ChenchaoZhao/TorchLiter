@@ -2,8 +2,6 @@ import collections
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
-import torch
-import torch.nn.functional as F
 from torch import Tensor
 
 from . import REPR_INDENT
@@ -14,7 +12,6 @@ __all__ = [
     "ExponentialMovingAverage",
     "ScalarSummaryStatistics",
     "ScalarSmoother",
-    "VectorSmoother",
 ]
 
 
@@ -96,11 +93,15 @@ class ExponentialMovingAverage(BufferBase):
         super().__init__(alpha=alpha, **kwargs)
 
     def reset(self):
-        self.mean = 0.0
+        self.mean = None
         self.variance = 0.0
         self._count = 0
 
     def update(self, x):
+
+        if self._count == 0:
+            self.mean = x
+
         delta = x - self.mean
 
         self.mean = self.mean + self.alpha * delta
@@ -227,92 +228,3 @@ class ScalarSmoother(_ScalarStatistics):
         window_size = int(window_size)
         assert window_size > 0, f"window_size should be > 0 but get {window_size}"
         super().__init__(maxlen=window_size, **kwargs)
-
-
-class VectorSmoother(ExponentialMovingAverage):
-    """
-    Exponential moving average of n-dim vector:
-
-    vector = alpha * new_vector + (1 - alpha) * vector
-
-    Additional features:
-        l_p normalization
-    """
-
-    def __init__(
-        self,
-        alpha: float,
-        n_dim: int,
-        init_value: float,
-        eps: float = 1e-8,
-        normalize: bool = True,
-        p: float = 1.0,
-        device: str = "cpu",
-        dtype: torch.dtype = torch.float,
-        **kwargs,
-    ):
-        alpha = float(alpha)
-        n_dim = max(1, int(n_dim))
-
-        if dtype in (torch.int, torch.long):
-            assert (
-                not normalize
-            ), "If dtype is `int` or `long`, normalize must be `False`. "
-        super().__init__(
-            alpha=alpha,
-            n_dim=n_dim,
-            init_value=init_value,
-            eps=eps,
-            normalize=normalize,
-            p=p,
-            device=torch.device(device),
-            dtype=dtype,
-            **kwargs,
-        )
-
-    def reset(self):
-        self._count = 0
-        self.mean = torch.zeros(self.n_dim) + self.init_value
-        self.mean = self.mean.to(device=self.device, dtype=self.dtype)
-        self.variance = torch.zeros_like(self.mean)
-        if self.normalize:
-            self.mean = self.lp_normalized(self.p)
-
-    def update(self, x: torch.Tensor):
-        super().update(x)
-        if self.normalize:
-            self.mean = self.lp_normalized(self.p)
-
-    def state_dict(self):
-        return {"mean": self.mean, "variance": self.variance, "count": self._count}
-
-    def load_state_dict(self, state_dict):
-        self._count = state_dict["count"]
-        self.mean = state_dict["mean"]
-        self.variance = state_dict["variance"]
-
-    @property
-    def vector(self):
-        return self.mean
-
-    @property
-    def l1_normalized(self):
-        return self.lp_normalized(1.0)
-
-    @property
-    def l2_normalized(self):
-        return self.lp_normalized(2.0)
-
-    @property
-    def l1_norm(self):
-        return self.lp_norm(1.0)
-
-    @property
-    def l2_norm(self):
-        return self.lp_norm(2.0)
-
-    def lp_norm(self, p: float):
-        return self.mean.norm(dim=0, p=p)
-
-    def lp_normalized(self, p: float):
-        return F.normalize(self.mean, dim=0, p=p, eps=self.eps)

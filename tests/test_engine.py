@@ -211,5 +211,5 @@ def test_auto_engine():
         example=0.618,
     )
 
-    assert test_engine.train_kwarg.mean == 0.0122982
+    assert test_engine.train_kwarg.mean == 0.618
     assert test_engine.eval_kwarg.mean == 0.618
