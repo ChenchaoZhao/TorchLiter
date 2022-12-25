@@ -41,7 +41,6 @@ class SimpleEngine(torchliter.engine.EngineBase):
 
 
 def test_engine_base():
-
     trainer = SimpleEngine()
 
     print(trainer)
@@ -131,14 +130,13 @@ def test_auto_buffers():
 
 
 def test_auto_engine():
-
     cart = torchliter.engine.auto.Cart()
-    cart.model = nn.Linear(1, 3)
+    cart.model = nn.Linear(1, 10)
     cart.train_loader = torch.utils.data.DataLoader(
-        [i for i in range(100)], batch_size=5
+        [(torch.randn(1), i) for i in range(10)], batch_size=5
     )
     cart.eval_loader = torch.utils.data.DataLoader(
-        [i for i in range(100)], batch_size=5
+        [(torch.randn(1), i) for i in range(10)], batch_size=5
     )
     cart.optimizer = torch.optim.AdamW(
         cart.model.parameters(), lr=1e-3, weight_decay=1e-5
@@ -158,12 +156,16 @@ def test_auto_engine():
 
         yield "train acc", acc.item()
 
+        yield "train kwarg", kwargs["example"]
+
     def eval_step(_, batch, **kwargs):
         image, target = batch
         with torch.no_grad():
             logits = _.model(image)
         acc = (logits.max(-1).indices == target).float().mean()
         yield "eval acc", acc.item()
+
+        yield "eval kwarg", kwargs["example"]
 
     def hello(_):
         print("hello")
@@ -202,3 +204,12 @@ def test_auto_engine():
     assert isinstance(
         test_engine.eval_acc, torchliter.engine.buffers.ScalarSummaryStatistics
     )
+
+    test_engine(
+        torchliter.stub.Train("train_loader")(1)
+        + torchliter.stub.Evaluate("eval_loader")(1),
+        example=0.618,
+    )
+
+    assert test_engine.train_kwarg.mean == 0.0122982
+    assert test_engine.eval_kwarg.mean == 0.618
