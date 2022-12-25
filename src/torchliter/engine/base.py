@@ -253,7 +253,7 @@ class EngineBase:
             )
 
         self.epoch_length = len(dataloader)
-        self.when_epoch_starts(**kwargs)
+        self.when_epoch_starts()
         try:
             # if current stub was paused, then pick up from there
             stub_iteration = max(0, int(self.current_stub.iteration))
@@ -264,12 +264,12 @@ class EngineBase:
 
         for batch in dataloader:
             try:
-                self.before_iteration(**kwargs)
+                self.before_iteration()
                 self.per_batch(batch, **kwargs)  # the iteration
                 self.current_stub.iteration += 1
                 if self.is_train_stub:
                     self.iteration += 1
-                self.after_iteration(**kwargs)
+                self.after_iteration()
                 if self.iteration == self.epoch_length:
                     # terminate such that total iterations equal epoch length
                     # NOTE: so far assume sampling with replacement
@@ -288,7 +288,7 @@ class EngineBase:
         # update engine epoch only when stub is Train
         if self.is_train_stub:
             self.epoch += 1
-        self.when_epoch_finishes(**kwargs)
+        self.when_epoch_finishes()
 
     def queue(self, stubs: List[StubBase]) -> None:
         """
